@@ -627,7 +627,6 @@ body {
 .tab-btn:not(.active) .tab-count {
     background: #999;
 }
-
     </style>
 </head>
 <body>
@@ -687,10 +686,10 @@ body {
 
             <!-- Action Controls -->
             <div id="action-controls">
-                <button class="action-button-bottom" title="Mostrar Resposta" onclick="toggleShowAnswer()">
+                <button id="toggleAnswerButton" class="action-button-bottom" title="Mostrar Resposta" onclick="toggleShowAnswer()">
                     <i class="fas fa-eye"></i> Mostrar Resposta
                 </button>
-                <button class="action-button-bottom" title="Marcar Frase" onclick="toggleMarkSentence()">
+                <button id="markSentenceButton" class="action-button-bottom" title="Marcar Frase" onclick="toggleMarkSentence()">
                     <i class="fas fa-bookmark"></i> Marcar
                 </button>
                 <button class="action-button-bottom" title="Ir à frase específica" onclick="showGoToSentence()">
@@ -823,7 +822,8 @@ body {
     <script>
         let sentences = [];
         let markedSentences = [];
-        let playInterval;
+        let playInterval = null;
+        let restartTimeout = null;
         let currentMode = 'input';
         let currentSpeed = 1.0;
         let loopStart = 0;
@@ -832,38 +832,73 @@ body {
         let currentSentenceIndex = 0;
         let currentTab = 'main';
         let showTranslation = false;
+        let playbackSession = 0;
 
         // Inicialização
         function init() {
             loadVoices();
             setupLanguageSelector();
+            setMode(currentMode);
+            document.getElementById('speedSlider').value = currentSpeed;
+            document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+            updateIntervalDisplay();
+            setActiveTabButtonState();
+            updatePlayPauseButton();
+            updateLoopRange();
             updateUI();
         }
 
         // Carregar vozes disponíveis
         let availableVoices = [];
         function loadVoices() {
+            function setVoices() {
+                availableVoices = window.speechSynthesis.getVoices();
+                console.log("Vozes carregadas:", availableVoices.length);
+                availableVoices.forEach(v => {
+                    console.log(v.name + " | " + v.lang);
+                });
+            }
 
-    function setVoices() {
-        availableVoices = window.speechSynthesis.getVoices();
+            setVoices();
 
-        console.log("Vozes carregadas:", availableVoices.length);
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = setVoices;
+            }
+        }
 
-        availableVoices.forEach(v => {
-            console.log(v.name + " | " + v.lang);
-        });
-    }
+        // Comparar frases
+        function isSameSentence(a, b) {
+            return !!a && !!b && a.original === b.original && a.translation === b.translation;
+        }
 
-    setVoices();
+        // Atualizar botão Play/Pause
+        function updatePlayPauseButton() {
+            const btn = document.querySelector('.play-pause-button');
+            btn.innerHTML = isPlaying
+                ? '<i class="fas fa-pause"></i>'
+                : '<i class="fas fa-play"></i>';
+        }
 
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = setVoices;
-    }
-}
+        // Atualizar estado visual das abas
+        function setActiveTabButtonState() {
+            const mainTab = document.getElementById('mainTab');
+            const markedTab = document.getElementById('markedTab');
+
+            if (currentTab === 'main') {
+                mainTab.classList.add('active');
+                markedTab.classList.remove('active');
+            } else {
+                mainTab.classList.remove('active');
+                markedTab.classList.add('active');
+            }
+        }
 
         // Obter voz preferida para um idioma
         function getPreferredVoiceForLanguage(langCode) {
-            // Mapa de vozes preferidas
+            if (!availableVoices.length) {
+                availableVoices = window.speechSynthesis.getVoices();
+            }
+
             const voicePreferences = {
                 'pt-BR': ['Francisca', 'Microsoft Francisca', 'Microsoft Thalita Multilingual Online (Natural)', 'Google português', 'Microsoft Maria'],
                 'en-US': ['Google US English', 'Microsoft Mark', 'Microsoft Zira'],
@@ -872,23 +907,23 @@ body {
             };
 
             const preferences = voicePreferences[langCode] || [];
-            
-            // Procurar pela voz preferida
+
             for (const preference of preferences) {
-                const voice = availableVoices.find(v => 
+                const voice = availableVoices.find(v =>
                     v.name.includes(preference) && v.lang.startsWith(langCode.split('-')[0])
                 );
                 if (voice) return voice;
             }
 
-            // Fallback: retornar qualquer voz do idioma
             const fallback = availableVoices.find(v => v.lang.startsWith(langCode.split('-')[0]));
-            return fallback || availableVoices[0];
+            return fallback || availableVoices[0] || null;
         }
 
         // Configurar seletor de idioma
         function setupLanguageSelector() {
             const selector = document.getElementById('language-selector');
+            selector.innerHTML = '';
+
             const languages = [
                 { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
                 { code: 'en-US', name: 'English', flag: '🇺🇸' },
@@ -911,31 +946,55 @@ body {
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             console.log('Idioma selecionado:', langCode);
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         // Alternar abas
         function switchTab(tab) {
             currentTab = tab;
-            
-            // Atualizar estilos dos botões
-            const mainTab = document.getElementById('mainTab');
-            const markedTab = document.getElementById('markedTab');
-            
-            if (tab === 'main') {
-                mainTab.classList.add('active');
-                markedTab.classList.remove('active');
-            } else {
-                mainTab.classList.remove('active');
-                markedTab.classList.add('active');
-            }
-            
             currentSentenceIndex = 0;
+            setActiveTabButtonState();
+            updateLoopRange();
             updateUI();
+
+            const currentSentences = getCurrentSentences();
+            if (isPlaying) {
+                if (currentSentences.length === 0) {
+                    stopAutoPlay();
+                } else {
+                    restartPlaybackFromCurrentCard();
+                }
+            }
         }
 
         // Obter frases da aba atual
         function getCurrentSentences() {
             return currentTab === 'marked' ? markedSentences : sentences;
+        }
+
+        // Loop efetivo
+        function getEffectiveLoopBounds(totalLength) {
+            if (totalLength <= 0) {
+                return { start: 0, end: 0 };
+            }
+
+            let start = parseInt(document.getElementById('loopStart').value, 10);
+            let end = parseInt(document.getElementById('loopEnd').value, 10);
+
+            if (Number.isNaN(start)) start = 0;
+            if (Number.isNaN(end)) end = totalLength - 1;
+
+            start = Math.max(0, Math.min(start, totalLength - 1));
+            end = Math.max(0, Math.min(end, totalLength - 1));
+
+            if (start > end) {
+                [start, end] = [end, start];
+            }
+
+            return { start, end };
         }
 
         // Mostrar opções de upload
@@ -965,7 +1024,9 @@ body {
             const file = e.target.files[0];
             if (!file) return;
 
+            stopAutoPlay();
             showLoadingOverlay();
+
             const reader = new FileReader();
 
             reader.onload = function(event) {
@@ -977,7 +1038,7 @@ body {
                         const workbook = XLSX.read(data, { type: 'array' });
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                        
+
                         jsonData.forEach(row => {
                             if (row[0] && row[1]) {
                                 extractedSentences.push({
@@ -989,6 +1050,7 @@ body {
                     } else if (file.name.endsWith('.csv')) {
                         const text = new TextDecoder().decode(data);
                         const rows = text.split('\n');
+
                         rows.forEach(row => {
                             const cols = row.split(',');
                             if (cols[0] && cols[1]) {
@@ -998,17 +1060,36 @@ body {
                                 });
                             }
                         });
+                    } else if (file.name.endsWith('.pdf')) {
+                        throw new Error('Importação de PDF ainda não está implementada.');
+                    } else {
+                        throw new Error('Formato de arquivo não suportado.');
                     }
 
                     sentences = extractedSentences;
+                    markedSentences = [];
+                    currentTab = 'main';
                     currentSentenceIndex = 0;
-                    loopEnd = sentences.length - 1;
+                    showTranslation = false;
+
+                    if (sentences.length > 0) {
+                        document.getElementById('loopStart').value = 0;
+                        document.getElementById('loopEnd').value = Math.max(0, sentences.length - 1);
+                    } else {
+                        document.getElementById('loopStart').value = 0;
+                        document.getElementById('loopEnd').value = 0;
+                    }
+
+                    setActiveTabButtonState();
+                    updateLoopRange();
                     updateUI();
                     hideLoadingOverlay();
                     showNotification(`${sentences.length} frases carregadas!`, 'success');
                 } catch (error) {
                     hideLoadingOverlay();
                     showNotification('Erro ao processar arquivo: ' + error.message, 'error');
+                } finally {
+                    e.target.value = '';
                 }
             };
 
@@ -1017,94 +1098,171 @@ body {
 
         // Alternar Play/Pause
         function togglePlayPause() {
-            const btn = document.querySelector('.play-pause-button');
             if (isPlaying) {
                 stopAutoPlay();
-                btn.innerHTML = '<i class="fas fa-play"></i>';
             } else {
                 startAutoPlay();
-                btn.innerHTML = '<i class="fas fa-pause"></i>';
             }
         }
 
         // Iniciar reprodução automática
         function startAutoPlay() {
             const currentSentences = getCurrentSentences();
-            if (currentSentences.length === 0) return;
+            if (currentSentences.length === 0) {
+                showNotification('Nenhuma frase disponível para reproduzir.', 'info');
+                return;
+            }
+
             isPlaying = true;
-            playSentence();
+            playbackSession++;
+            clearTimeout(playInterval);
+            clearTimeout(restartTimeout);
+            window.speechSynthesis.cancel();
+            updatePlayPauseButton();
+            updateUI();
+
+            const sessionId = playbackSession;
+            restartTimeout = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                playSentence(sessionId);
+            }, 60);
         }
 
         // Parar reprodução automática
         function stopAutoPlay() {
             isPlaying = false;
-            window.speechSynthesis.cancel();
+            playbackSession++;
             clearTimeout(playInterval);
+            clearTimeout(restartTimeout);
+            window.speechSynthesis.cancel();
+            updatePlayPauseButton();
+        }
+
+        // Reiniciar reprodução da frase atual
+        function restartPlaybackFromCurrentCard() {
+            if (!isPlaying) return;
+
+            playbackSession++;
+            clearTimeout(playInterval);
+            clearTimeout(restartTimeout);
+            window.speechSynthesis.cancel();
+            updateUI();
+
+            const sessionId = playbackSession;
+            restartTimeout = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                playSentence(sessionId);
+            }, 60);
+        }
+
+        // Avançar respeitando loop
+        function advanceToNextSentence() {
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) return;
+
+            const bounds = getEffectiveLoopBounds(currentSentences.length);
+
+            if (currentSentenceIndex < bounds.start || currentSentenceIndex > bounds.end) {
+                currentSentenceIndex = bounds.start;
+                return;
+            }
+
+            currentSentenceIndex = currentSentenceIndex >= bounds.end
+                ? bounds.start
+                : currentSentenceIndex + 1;
         }
 
         // Reproduzir frase
-        function playSentence() {
+        function playSentence(sessionId = playbackSession) {
             const currentSentences = getCurrentSentences();
-            if (!isPlaying || currentSentences.length === 0) return;
 
-            const sentence = currentSentences[currentSentenceIndex];
-            const textToSpeak = currentMode === 'input' ? sentence.original : sentence.translation;
-            
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.rate = currentSpeed;
-            const langCode = document.querySelector('#language-selector button.active').dataset.lang;
-            utterance.lang = langCode;
-
-            const voices = speechSynthesis.getVoices();
-
-            // procura a voz Francisca
-            const francisca = voices.find(v => v.name.includes("Francisca"));
-
-            if (francisca) {
-            utterance.voice = francisca;
+            if (!isPlaying || sessionId !== playbackSession || currentSentences.length === 0) {
+                return;
             }
 
-            speechSynthesis.speak(utterance);
-            
-            // Definir voz preferida
+            if (currentSentenceIndex < 0 || currentSentenceIndex >= currentSentences.length) {
+                currentSentenceIndex = 0;
+            }
+
+            updateUI();
+
+            const sentence = currentSentences[currentSentenceIndex];
+            const textToSpeak = currentMode === 'input'
+                ? sentence.original
+                : sentence.translation;
+
+            if (!textToSpeak || !textToSpeak.trim()) {
+                scheduleNextSentence(sessionId);
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.rate = currentSpeed;
+
+            const activeLanguageButton = document.querySelector('#language-selector button.active');
+            const langCode = activeLanguageButton ? activeLanguageButton.dataset.lang : 'pt-BR';
             const preferredVoice = getPreferredVoiceForLanguage(langCode);
+
             if (preferredVoice) {
                 utterance.voice = preferredVoice;
-                console.log(`Usando voz: ${preferredVoice.name} para ${langCode}`);
+                utterance.lang = preferredVoice.lang;
+                console.log(`Usando voz: ${preferredVoice.name} para ${utterance.lang}`);
+            } else {
+                utterance.lang = langCode;
             }
 
             utterance.onend = () => {
-                if (isPlaying) {
-                    const delay = parseInt(document.getElementById('intervalSlider').value) * 1000;
-                    playInterval = setTimeout(() => {
-                        const currentSentences = getCurrentSentences();
-                        currentSentenceIndex++;
-                        if (currentSentenceIndex >= currentSentences.length) {
-                            currentSentenceIndex = 0;
-                        }
-                        updateUI();
-                        playSentence();
-                    }, delay);
-                }
+                if (!isPlaying || sessionId !== playbackSession) return;
+                scheduleNextSentence(sessionId);
+            };
+
+            utterance.onerror = (event) => {
+                console.error('Erro ao reproduzir TTS:', event);
+                if (!isPlaying || sessionId !== playbackSession) return;
+                scheduleNextSentence(sessionId);
             };
 
             window.speechSynthesis.speak(utterance);
+        }
+
+        // Agendar próxima frase
+        function scheduleNextSentence(sessionId) {
+            clearTimeout(playInterval);
+
+            const delay = parseFloat(document.getElementById('intervalSlider').value || '0') * 1000;
+
+            playInterval = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                advanceToNextSentence();
+                updateUI();
+                playSentence(sessionId);
+            }, delay);
         }
 
         // Próxima frase
         function showNextSentence() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
+
             currentSentenceIndex = (currentSentenceIndex + 1) % currentSentences.length;
             updateUI();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         // Frase anterior
         function showPreviousSentence() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
+
             currentSentenceIndex = (currentSentenceIndex - 1 + currentSentences.length) % currentSentences.length;
             updateUI();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         // Alternar mostrar resposta
@@ -1115,17 +1273,26 @@ body {
 
         // Marcar frase
         function toggleMarkSentence() {
-            if (sentences.length === 0) return;
-            const sentence = sentences[currentSentenceIndex];
-            const index = markedSentences.findIndex(s => s.original === sentence.original);
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) return;
+
+            const sentence = currentSentences[currentSentenceIndex];
+            const index = markedSentences.findIndex(s => isSameSentence(s, sentence));
+
             if (index > -1) {
                 markedSentences.splice(index, 1);
                 showNotification('Frase desmarcada', 'info');
             } else {
-                markedSentences.push(sentence);
+                markedSentences.push({ ...sentence });
                 showNotification('Frase marcada', 'success');
             }
+
+            updateLoopRange();
             updateUI();
+
+            if (isPlaying && currentTab === 'marked') {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         // Ir à frase
@@ -1133,6 +1300,7 @@ body {
             const currentSentences = getCurrentSentences();
             document.getElementById('goToSentenceOverlay').classList.add('active');
             document.getElementById('totalSentencesInfo').textContent = `Total: ${currentSentences.length} frases`;
+            document.getElementById('sentenceNumberInput').value = '';
         }
 
         function closeGoToSentence() {
@@ -1141,11 +1309,16 @@ body {
 
         function goToSentenceNumber() {
             const currentSentences = getCurrentSentences();
-            const num = parseInt(document.getElementById('sentenceNumberInput').value);
+            const num = parseInt(document.getElementById('sentenceNumberInput').value, 10);
+
             if (num > 0 && num <= currentSentences.length) {
                 currentSentenceIndex = num - 1;
                 updateUI();
                 closeGoToSentence();
+
+                if (isPlaying) {
+                    restartPlaybackFromCurrentCard();
+                }
             } else {
                 showNotification('Número inválido', 'error');
             }
@@ -1154,17 +1327,27 @@ body {
         // Alternar configurações
         function toggleSettings() {
             document.getElementById('settingsOverlay').classList.toggle('active');
+            updateLoopRange();
         }
 
         function setMode(mode) {
             currentMode = mode;
             document.getElementById('modeInputBtn').style.backgroundColor = mode === 'input' ? '#3498db' : '#95a5a6';
             document.getElementById('modeOutputBtn').style.backgroundColor = mode === 'output' ? '#3498db' : '#95a5a6';
+            updateUI();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         function updateSpeed(event) {
             currentSpeed = parseFloat(event.target.value);
             document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         function updateIntervalDisplay() {
@@ -1175,20 +1358,42 @@ body {
 
         function updateLoopRange() {
             const currentSentences = getCurrentSentences();
-            loopStart = parseInt(document.getElementById('loopStart').value) || 0;
-            loopEnd = parseInt(document.getElementById('loopEnd').value) || currentSentences.length - 1;
+            const total = currentSentences.length;
+
+            document.getElementById('loopStart').max = Math.max(0, total - 1);
+            document.getElementById('loopEnd').max = Math.max(0, total - 1);
+
+            if (total === 0) {
+                loopStart = 0;
+                loopEnd = 0;
+                document.getElementById('loopRangeDisplay').textContent = 'Loop: 0 até 0';
+                return;
+            }
+
+            const bounds = getEffectiveLoopBounds(total);
+            loopStart = bounds.start;
+            loopEnd = bounds.end;
+
+            document.getElementById('loopStart').value = loopStart;
+            document.getElementById('loopEnd').value = loopEnd;
             document.getElementById('loopRangeDisplay').textContent = `Loop: ${loopStart + 1} até ${loopEnd + 1}`;
         }
 
         function saveSettings() {
+            updateLoopRange();
             showNotification('Configurações salvas!', 'success');
             toggleSettings();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
         }
 
         // Alternar editor
         function toggleEditor() {
             const overlay = document.getElementById('editorOverlay');
             overlay.classList.toggle('active');
+
             if (overlay.classList.contains('active')) {
                 populateEditorTable();
             }
@@ -1197,12 +1402,36 @@ body {
         function populateEditorTable() {
             const tbody = document.getElementById('editorTableBody');
             tbody.innerHTML = '';
-            sentences.forEach((sentence, index) => {
+
+            sentences.forEach((sentence) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="padding: 10px; border: 1px solid #ddd;"><input type="text" value="${sentence.original}" style="width: 100%; border: none; padding: 5px;"></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;"><input type="text" value="${sentence.translation}" style="width: 100%; border: none; padding: 5px;"></td>
-                `;
+
+                const originalCell = document.createElement('td');
+                originalCell.style.padding = '10px';
+                originalCell.style.border = '1px solid #ddd';
+
+                const originalInput = document.createElement('input');
+                originalInput.type = 'text';
+                originalInput.value = sentence.original;
+                originalInput.style.width = '100%';
+                originalInput.style.border = 'none';
+                originalInput.style.padding = '5px';
+
+                const translationCell = document.createElement('td');
+                translationCell.style.padding = '10px';
+                translationCell.style.border = '1px solid #ddd';
+
+                const translationInput = document.createElement('input');
+                translationInput.type = 'text';
+                translationInput.value = sentence.translation;
+                translationInput.style.width = '100%';
+                translationInput.style.border = 'none';
+                translationInput.style.padding = '5px';
+
+                originalCell.appendChild(originalInput);
+                translationCell.appendChild(translationInput);
+                row.appendChild(originalCell);
+                row.appendChild(translationCell);
                 tbody.appendChild(row);
             });
         }
@@ -1214,40 +1443,100 @@ body {
 
         function saveChanges() {
             const rows = document.querySelectorAll('#editorTableBody tr');
-            sentences = [];
+            const updatedSentences = [];
+
             rows.forEach(row => {
                 const inputs = row.querySelectorAll('input');
-                if (inputs[0].value && inputs[1].value) {
-                    sentences.push({
-                        original: inputs[0].value,
-                        translation: inputs[1].value
+                const original = inputs[0].value.trim();
+                const translation = inputs[1].value.trim();
+
+                if (original && translation) {
+                    updatedSentences.push({
+                        original,
+                        translation
                     });
                 }
             });
+
+            sentences = updatedSentences;
+            markedSentences = markedSentences.filter(marked =>
+                sentences.some(sentence => isSameSentence(sentence, marked))
+            );
+
+            if (currentSentenceIndex >= getCurrentSentences().length) {
+                currentSentenceIndex = Math.max(0, getCurrentSentences().length - 1);
+            }
+
+            updateLoopRange();
             updateUI();
             toggleEditor();
             showNotification('Alterações salvas!', 'success');
+
+            if (isPlaying) {
+                const currentSentences = getCurrentSentences();
+                if (currentSentences.length === 0) {
+                    stopAutoPlay();
+                } else {
+                    restartPlaybackFromCurrentCard();
+                }
+            }
         }
 
         // Atualizar UI
         function updateUI() {
-            // Atualizar contadores de abas
             document.getElementById('allSentencesCount').textContent = sentences.length;
             document.getElementById('markedSentencesCount').textContent = markedSentences.length;
 
             const currentSentences = getCurrentSentences();
+            const sentenceTextEl = document.querySelector('.sentence-text');
+            const translationTextEl = document.querySelector('.translation-text');
+            const counterEl = document.getElementById('sentence-counter');
+            const markBtn = document.getElementById('markSentenceButton');
+            const answerBtn = document.getElementById('toggleAnswerButton');
+
+            answerBtn.innerHTML = showTranslation
+                ? '<i class="fas fa-eye-slash"></i> Ocultar Resposta'
+                : '<i class="fas fa-eye"></i> Mostrar Resposta';
+
             if (currentSentences.length === 0) {
-                document.querySelector('.sentence-text').textContent = currentTab === 'marked' ? 'Nenhuma frase marcada' : 'Nenhuma frase carregada';
-                document.querySelector('.translation-text').textContent = '';
-                document.getElementById('sentence-counter').textContent = '0 / 0';
+                sentenceTextEl.textContent = currentTab === 'marked' ? 'Nenhuma frase marcada' : 'Nenhuma frase carregada';
+                translationTextEl.textContent = '';
+                translationTextEl.style.display = 'none';
+                counterEl.textContent = '0 / 0';
+                markBtn.innerHTML = '<i class="fas fa-bookmark"></i> Marcar';
+
+                if (isPlaying) {
+                    stopAutoPlay();
+                }
                 return;
             }
 
+            if (currentSentenceIndex >= currentSentences.length) {
+                currentSentenceIndex = currentSentences.length - 1;
+            }
+            if (currentSentenceIndex < 0) {
+                currentSentenceIndex = 0;
+            }
+
             const sentence = currentSentences[currentSentenceIndex];
-            document.querySelector('.sentence-text').textContent = sentence.original;
-            document.querySelector('.translation-text').textContent = showTranslation ? sentence.translation : '';
-            document.querySelector('.translation-text').style.display = showTranslation ? 'block' : 'none';
-            document.getElementById('sentence-counter').textContent = `${currentSentenceIndex + 1} / ${currentSentences.length}`;
+
+            const frontText = currentMode === 'input'
+                ? sentence.original
+                : sentence.translation;
+
+            const backText = currentMode === 'input'
+                ? sentence.translation
+                : sentence.original;
+
+            sentenceTextEl.textContent = frontText;
+            translationTextEl.textContent = showTranslation ? backText : '';
+            translationTextEl.style.display = showTranslation ? 'block' : 'none';
+            counterEl.textContent = `${currentSentenceIndex + 1} / ${currentSentences.length}`;
+
+            const isMarked = markedSentences.some(s => isSameSentence(s, sentence));
+            markBtn.innerHTML = isMarked
+                ? '<i class="fas fa-bookmark"></i> Desmarcar'
+                : '<i class="fas fa-bookmark"></i> Marcar';
         }
 
         // Mostrar/ocultar overlay de carregamento
