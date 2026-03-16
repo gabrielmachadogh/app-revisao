@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Language Learning">
+    <title>Language Learning App</title>
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TTS Pro">
+    
+    <!-- Meta tags para SEO e compartilhamento -->
+    <meta name="description" content="Aplicativo de aprendizado de idiomas com pronúncia nativa e text-to-speech avançado">
+    <meta name="keywords" content="aprendizado, idiomas, TTS, text-to-speech, pronúncia, nativo">
+    <meta name="author" content="Language Learning TTS Pro">
+    
+    <!-- Open Graph para compartilhamento -->
+    <meta property="og:title" content="Language Learning TTS Pro">
+    <meta property="og:description" content="Aprenda idiomas com pronúncia nativa">
+    <meta property="og:type" content="website">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/franc@6.1.0/dist/franc.min.js"></script>
+    
+    <!-- Google APIs -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    
+    <style>
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+#app-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 480px; /* Max width for mobile-first design */
+    margin: 20px;
+    overflow: hidden;
+    position: relative; /* For absolute positioning of overlays */
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+#main-screen {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#header h1 {
+    font-size: 1.8em;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button img {
+    width: 24px;
+    height: 24px;
+    filter: invert(100%);
+}
+
+.action-button:hover {
+    background-color: #45a049;
+}
+
+/* Sentence Display */
+#sentence-display {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sentence-text {
+    font-size: 1.4em;
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.translation-text {
+    color: #7f8c8d;
+    font-size: 1.1em;
+    display: none; /* Hidden by default */
+}
+
+/* Controls */
+#controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.nav-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-button img {
+    width: 24px;
+    height: 24px;
+    filter: invert(100%);
+}
+
+.nav-button:hover {
+    background-color: #2980b9;
+}
+
+#play-pause-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.play-pause-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.play-pause-button img {
+    width: 36px;
+    height: 36px;
+    filter: invert(100%);
+}
+
+.play-pause-button:hover {
+    background-color: #c0392b;
+}
+
+#sentence-counter {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+/* Action Controls (Bottom) */
+#action-controls {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    background-color: #fdfdfd;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.action-button-bottom {
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.action-button-bottom img {
+    width: 20px;
+    height: 20px;
+    filter: invert(100%);
+}
+
+.action-button-bottom:hover {
+    background-color: #7f8c8d;
+}
+
+/* Overlays */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-content {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.overlay-content h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+}
+
+.overlay-content label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.overlay-content input[type="range"],
+.overlay-content input[type="number"],
+.overlay-content textarea {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.overlay-content input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 8px;
+    background: #ddd;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+}
+
+.overlay-content input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3498db;
+    cursor: pointer;
+}
+
+.overlay-content input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3498db;
+    cursor: pointer;
+}
+
+#speed-value, #interval-value {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.radio-group {
+    margin-bottom: 20px;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 5px;
+}
+
+.radio-group label {
+    display: inline-block;
+    margin-right: 15px;
+    font-weight: normal;
+}
+
+#language-selector {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+#language-selector button {
+    background-color: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9em;
+}
+
+#language-selector button img {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+}
+
+#language-selector button.active {
+    background-color: #3498db;
+    border-color: #2980b9;
+    color: white;
+}
+
+#language-selector button.active img {
+    filter: brightness(1.2);
+}
+
+#language-selector button:hover:not(.active) {
+    background-color: #dbe4e6;
+    border-color: #95a5a6;
+}
+
+#save-settings-button, #editor-save-button, #editor-close-button,
+#goto-sentence-confirm-button, #goto-sentence-cancel-button, #editor-goto-line-button {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+    width: auto;
+}
+
+#editor-close-button, #goto-sentence-cancel-button {
+    background-color: #e74c3c;
+    margin-left: 10px;
+}
+
+#editor-goto-line-button {
+    background-color: #f39c12;
+    margin-left: 10px;
+}
+
+#save-settings-button:hover, #editor-save-button:hover,
+#goto-sentence-confirm-button:hover {
+    background-color: #27ae60;
+}
+
+#editor-close-button:hover, #goto-sentence-cancel-button:hover {
+    background-color: #c0392b;
+}
+
+#editor-goto-line-button:hover {
+    background-color: #e67e22;
+}
+
+/* Editor Overlay */
+#editor-textarea {
+    width: calc(100% - 20px);
+    height: 200px;
+    resize: vertical;
+    font-family: monospace;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+.editor-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+/* Go To Overlay */
+#goto-sentence-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+/* Notification Area */
+#notification-area {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.notification {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.notification.show {
+    opacity: 1;
+}
+
+.notification.success {
+    background-color: #2ecc71;
+}
+
+.notification.error {
+    background-color: #e74c3c;
+}
+
+.notification.info {
+    background-color: #3498db;
+}
+
+/* Loading Overlay */
+#loading-overlay {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+    font-size: 1.2em;
+    flex-direction: column;
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    #header h1 {
+        font-size: 1.5em;
+    }
+
+    .action-button {
+        padding: 8px 12px;
+    }
+
+    .action-button img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .sentence-text {
+        font-size: 1.2em;
+    }
+
+    .play-pause-button {
+        width: 60px;
+        height: 60px;
+    }
+
+    .play-pause-button img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .nav-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .nav-button img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .action-button-bottom {
+        padding: 8px 10px;
+        font-size: 0.8em;
+    }
+
+    .action-button-bottom img {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* Tabs Container */
+#tabsContainer {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #999;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab-btn.active {
+    color: #3498db;
+    border-bottom-color: #3498db;
+}
+
+.tab-btn:hover {
+    color: #3498db;
+}
+
+.tab-count {
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.tab-btn.active .tab-count {
+    background: #3498db;
+}
+
+.tab-btn:not(.active) .tab-count {
+    background: #999;
+}
+
+    </style>
+</head>
+<body>
+    <!-- Container principal -->
+    <div id="app-container">
+        <!-- Main screen -->
+        <div id="main-screen">
+            <!-- Header -->
+            <div id="header">
+                <h1><i class="fas fa-volume-up"></i> Language Learning TTS Pro</h1>
+                <div class="header-buttons">
+                    <button class="action-button" title="Carregar Arquivo" onclick="showUploadOptions()">
+                        <i class="fas fa-folder-open"></i>
+                    </button>
+                    <button class="action-button" title="Configurações" onclick="toggleSettings()">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="action-button" title="Editar Planilha" onclick="toggleEditor()">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs Container -->
+            <div id="tabsContainer">
+                <button id="mainTab" class="tab-btn active" onclick="switchTab('main')">
+                    <i class="fas fa-list"></i> Todas (<span id="allSentencesCount">0</span>)
+                </button>
+                <button id="markedTab" class="tab-btn" onclick="switchTab('marked')">
+                    <i class="fas fa-bookmark"></i> Marcadas (<span id="markedSentencesCount">0</span>)
+                </button>
+            </div>
+
+            <!-- Sentence Display -->
+            <div id="sentence-display">
+                <div class="sentence-text">Nenhuma frase carregada</div>
+                <div class="translation-text"></div>
+            </div>
+
+            <!-- Sentence Counter -->
+            <div id="sentence-counter" style="text-align: center; margin-bottom: 20px;">0 / 0</div>
+
+            <!-- Controls -->
+            <div id="controls">
+                <button class="nav-button" title="Anterior" onclick="showPreviousSentence()">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <div id="play-pause-container">
+                    <button class="play-pause-button" title="Play/Pause" onclick="togglePlayPause()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+                <button class="nav-button" title="Próxima" onclick="showNextSentence()">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+            </div>
+
+            <!-- Action Controls -->
+            <div id="action-controls">
+                <button class="action-button-bottom" title="Mostrar Resposta" onclick="toggleShowAnswer()">
+                    <i class="fas fa-eye"></i> Mostrar Resposta
+                </button>
+                <button class="action-button-bottom" title="Marcar Frase" onclick="toggleMarkSentence()">
+                    <i class="fas fa-bookmark"></i> Marcar
+                </button>
+                <button class="action-button-bottom" title="Ir à frase específica" onclick="showGoToSentence()">
+                    <i class="fas fa-search"></i> Ir à Frase
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input de arquivo oculto -->
+    <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" style="display: none;">
+
+    <!-- Overlay de opções de upload -->
+    <div id="uploadOptionsOverlay" class="overlay">
+        <div class="overlay-content">
+            <h2><i class="fas fa-cloud-upload-alt"></i> Escolha a Origem do Arquivo</h2>
+            <button class="action-button-bottom" style="width: 100%; margin-bottom: 10px;" onclick="selectLocalFile()">
+                <i class="fas fa-laptop"></i> Arquivo Local
+            </button>
+            <button class="action-button-bottom" style="width: 100%;" onclick="selectFromGoogleDrive()">
+                <i class="fab fa-google-drive"></i> Google Drive
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay de configurações -->
+    <div id="settingsOverlay" class="overlay">
+        <div class="overlay-content">
+            <h2><i class="fas fa-cog"></i> Configurações</h2>
+            
+            <label>Modo de Reprodução:</label>
+            <div style="margin-bottom: 20px;">
+                <button id="modeInputBtn" class="action-button-bottom" style="background-color: #3498db; width: 48%; margin-right: 2%;" onclick="setMode('input')">
+                    <i class="fas fa-microphone"></i> Input (A → B)
+                </button>
+                <button id="modeOutputBtn" class="action-button-bottom" style="width: 48%;" onclick="setMode('output')">
+                    <i class="fas fa-volume-up"></i> Output (B → A)
+                </button>
+            </div>
+
+            <label>Velocidade: <span id="speedDisplay">1.0x</span></label>
+            <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(event)">
+
+            <label>Intervalo: <span id="intervalDisplay">🚀 Leitura Corrente</span></label>
+            <input type="range" id="intervalSlider" min="0" max="10" step="0.5" value="0" oninput="updateIntervalDisplay()">
+
+            <label>Seletor de Idioma:</label>
+            <div id="language-selector"></div>
+
+            <label>Loop Personalizado:</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.9em;">Início:</label>
+                    <input type="number" id="loopStart" min="0" value="0" oninput="updateLoopRange()">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.9em;">Fim:</label>
+                    <input type="number" id="loopEnd" min="0" value="0" oninput="updateLoopRange()">
+                </div>
+            </div>
+            <div id="loopRangeDisplay" style="text-align: center; margin-bottom: 15px;">Loop: 1 até 1</div>
+
+            <button id="save-settings-button" onclick="saveSettings()">
+                <i class="fas fa-save"></i> Salvar Configurações
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay do editor -->
+    <div id="editorOverlay" class="overlay">
+        <div class="overlay-content">
+            <h2><i class="fas fa-edit"></i> Editor de Planilha</h2>
+            <div style="margin-bottom: 15px;">
+                <input type="number" id="goToRowInput" placeholder="Ir à linha..." min="1" style="width: calc(100% - 20px); padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                <button class="action-button-bottom" style="width: 100%; margin-bottom: 10px;" onclick="addNewRow()">
+                    <i class="fas fa-plus"></i> Adicionar Linha
+                </button>
+            </div>
+            <div id="editorTableContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f0f0f0;">
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Original (A)</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tradução (B)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="editorTableBody">
+                        <!-- Linhas serão adicionadas dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="editor-controls">
+                <button id="editor-save-button" onclick="saveChanges()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <button id="editor-close-button" onclick="toggleEditor()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay "Ir à frase" -->
+    <div id="goToSentenceOverlay" class="overlay">
+        <div class="overlay-content">
+            <h2><i class="fas fa-search"></i> Ir à Frase</h2>
+            <label for="sentenceNumberInput">Número da frase:</label>
+            <input type="number" id="sentenceNumberInput" placeholder="Digite o número da frase" min="1" style="width: calc(100% - 20px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <div id="totalSentencesInfo" style="text-align: center; margin-bottom: 15px; font-size: 0.9em; color: #666;">Total: 0 frases</div>
+            <div class="editor-controls">
+                <button id="goto-sentence-confirm-button" onclick="goToSentenceNumber()">
+                    <i class="fas fa-arrow-right"></i> Ir
+                </button>
+                <button id="goto-sentence-cancel-button" onclick="closeGoToSentence()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Area -->
+    <div id="notification-area"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="overlay">
+        <div class="loading-spinner"></div>
+        <span>Processando arquivo...</span>
+    </div>
+
+    <script>
+        let sentences = [];
+        let markedSentences = [];
+        let playInterval;
+        let currentMode = 'input';
+        let currentSpeed = 1.0;
+        let loopStart = 0;
+        let loopEnd = -1;
+        let isPlaying = false;
+        let currentSentenceIndex = 0;
+        let currentTab = 'main';
+        let showTranslation = false;
+
+        // Inicialização
+        function init() {
+            loadVoices();
+            setupLanguageSelector();
+            updateUI();
+        }
+
+        // Carregar vozes disponíveis
+        let availableVoices = [];
+        function loadVoices() {
+            availableVoices = window.speechSynthesis.getVoices();
+            console.log('Vozes disponíveis:', availableVoices.length);
+            availableVoices.forEach((voice, index) => {
+                console.log(`${index}: ${voice.name} (${voice.lang}) - Local: ${voice.localService}`);
+            });
+        }
+
+        // Obter voz preferida para um idioma
+        function getPreferredVoiceForLanguage(langCode) {
+            // Mapa de vozes preferidas
+            const voicePreferences = {
+                'pt-BR': ['Francisca', 'Microsoft Francisca', 'Microsoft Thalita Multilingual Online (Natural)', 'Google português', 'Microsoft Maria'],
+                'en-US': ['Google US English', 'Microsoft Mark', 'Microsoft Zira'],
+                'fr-FR': ['Google français', 'Microsoft Hortense', 'Microsoft Paul'],
+                'es-ES': ['Google español', 'Microsoft Helena', 'Microsoft Pablo']
+            };
+
+            const preferences = voicePreferences[langCode] || [];
+            
+            // Procurar pela voz preferida
+            for (const preference of preferences) {
+                const voice = availableVoices.find(v => 
+                    v.name.includes(preference) && v.lang.startsWith(langCode.split('-')[0])
+                );
+                if (voice) return voice;
+            }
+
+            // Fallback: retornar qualquer voz do idioma
+            const fallback = availableVoices.find(v => v.lang.startsWith(langCode.split('-')[0]));
+            return fallback || availableVoices[0];
+        }
+
+        // Configurar seletor de idioma
+        function setupLanguageSelector() {
+            const selector = document.getElementById('language-selector');
+            const languages = [
+                { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+                { code: 'en-US', name: 'English', flag: '🇺🇸' },
+                { code: 'fr-FR', name: 'Français', flag: '🇫🇷' },
+                { code: 'es-ES', name: 'Español', flag: '🇪🇸' }
+            ];
+
+            languages.forEach(lang => {
+                const btn = document.createElement('button');
+                btn.textContent = `${lang.flag} ${lang.name}`;
+                btn.dataset.lang = lang.code;
+                btn.onclick = () => selectLanguage(lang.code, btn);
+                if (lang.code === 'pt-BR') btn.classList.add('active');
+                selector.appendChild(btn);
+            });
+        }
+
+        // Selecionar idioma
+        function selectLanguage(langCode, btn) {
+            document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            console.log('Idioma selecionado:', langCode);
+        }
+
+        // Alternar abas
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Atualizar estilos dos botões
+            const mainTab = document.getElementById('mainTab');
+            const markedTab = document.getElementById('markedTab');
+            
+            if (tab === 'main') {
+                mainTab.classList.add('active');
+                markedTab.classList.remove('active');
+            } else {
+                mainTab.classList.remove('active');
+                markedTab.classList.add('active');
+            }
+            
+            currentSentenceIndex = 0;
+            updateUI();
+        }
+
+        // Obter frases da aba atual
+        function getCurrentSentences() {
+            return currentTab === 'marked' ? markedSentences : sentences;
+        }
+
+        // Mostrar opções de upload
+        function showUploadOptions() {
+            document.getElementById('uploadOptionsOverlay').classList.add('active');
+        }
+
+        // Ocultar opções de upload
+        function hideUploadOptions() {
+            document.getElementById('uploadOptionsOverlay').classList.remove('active');
+        }
+
+        // Selecionar arquivo local
+        function selectLocalFile() {
+            hideUploadOptions();
+            document.getElementById('fileInput').click();
+        }
+
+        // Selecionar do Google Drive
+        function selectFromGoogleDrive() {
+            hideUploadOptions();
+            alert('Funcionalidade Google Drive será implementada em breve');
+        }
+
+        // Processar upload de arquivo
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showLoadingOverlay();
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                try {
+                    const data = event.target.result;
+                    let extractedSentences = [];
+
+                    if (file.name.endsWith('.xlsx')) {
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        jsonData.forEach(row => {
+                            if (row[0] && row[1]) {
+                                extractedSentences.push({
+                                    original: String(row[0]).trim(),
+                                    translation: String(row[1]).trim()
+                                });
+                            }
+                        });
+                    } else if (file.name.endsWith('.csv')) {
+                        const text = new TextDecoder().decode(data);
+                        const rows = text.split('\n');
+                        rows.forEach(row => {
+                            const cols = row.split(',');
+                            if (cols[0] && cols[1]) {
+                                extractedSentences.push({
+                                    original: cols[0].trim(),
+                                    translation: cols[1].trim()
+                                });
+                            }
+                        });
+                    }
+
+                    sentences = extractedSentences;
+                    currentSentenceIndex = 0;
+                    loopEnd = sentences.length - 1;
+                    updateUI();
+                    hideLoadingOverlay();
+                    showNotification(`${sentences.length} frases carregadas!`, 'success');
+                } catch (error) {
+                    hideLoadingOverlay();
+                    showNotification('Erro ao processar arquivo: ' + error.message, 'error');
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Alternar Play/Pause
+        function togglePlayPause() {
+            const btn = document.querySelector('.play-pause-button');
+            if (isPlaying) {
+                stopAutoPlay();
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                startAutoPlay();
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        }
+
+        // Iniciar reprodução automática
+        function startAutoPlay() {
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) return;
+            isPlaying = true;
+            playSentence();
+        }
+
+        // Parar reprodução automática
+        function stopAutoPlay() {
+            isPlaying = false;
+            window.speechSynthesis.cancel();
+            clearTimeout(playInterval);
+        }
+
+        // Reproduzir frase
+        function playSentence() {
+            const currentSentences = getCurrentSentences();
+            if (!isPlaying || currentSentences.length === 0) return;
+
+            const sentence = currentSentences[currentSentenceIndex];
+            const textToSpeak = currentMode === 'input' ? sentence.original : sentence.translation;
+            
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.rate = currentSpeed;
+            const langCode = document.querySelector('#language-selector button.active').dataset.lang;
+            utterance.lang = langCode;
+            
+            // Definir voz preferida
+            const preferredVoice = getPreferredVoiceForLanguage(langCode);
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+                console.log(`Usando voz: ${preferredVoice.name} para ${langCode}`);
+            }
+
+            utterance.onend = () => {
+                if (isPlaying) {
+                    const delay = parseInt(document.getElementById('intervalSlider').value) * 1000;
+                    playInterval = setTimeout(() => {
+                        const currentSentences = getCurrentSentences();
+                        currentSentenceIndex++;
+                        if (currentSentenceIndex >= currentSentences.length) {
+                            currentSentenceIndex = 0;
+                        }
+                        updateUI();
+                        playSentence();
+                    }, delay);
+                }
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Próxima frase
+        function showNextSentence() {
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) return;
+            currentSentenceIndex = (currentSentenceIndex + 1) % currentSentences.length;
+            updateUI();
+        }
+
+        // Frase anterior
+        function showPreviousSentence() {
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) return;
+            currentSentenceIndex = (currentSentenceIndex - 1 + currentSentences.length) % currentSentences.length;
+            updateUI();
+        }
+
+        // Alternar mostrar resposta
+        function toggleShowAnswer() {
+            showTranslation = !showTranslation;
+            updateUI();
+        }
+
+        // Marcar frase
+        function toggleMarkSentence() {
+            if (sentences.length === 0) return;
+            const sentence = sentences[currentSentenceIndex];
+            const index = markedSentences.findIndex(s => s.original === sentence.original);
+            if (index > -1) {
+                markedSentences.splice(index, 1);
+                showNotification('Frase desmarcada', 'info');
+            } else {
+                markedSentences.push(sentence);
+                showNotification('Frase marcada', 'success');
+            }
+            updateUI();
+        }
+
+        // Ir à frase
+        function showGoToSentence() {
+            const currentSentences = getCurrentSentences();
+            document.getElementById('goToSentenceOverlay').classList.add('active');
+            document.getElementById('totalSentencesInfo').textContent = `Total: ${currentSentences.length} frases`;
+        }
+
+        function closeGoToSentence() {
+            document.getElementById('goToSentenceOverlay').classList.remove('active');
+        }
+
+        function goToSentenceNumber() {
+            const currentSentences = getCurrentSentences();
+            const num = parseInt(document.getElementById('sentenceNumberInput').value);
+            if (num > 0 && num <= currentSentences.length) {
+                currentSentenceIndex = num - 1;
+                updateUI();
+                closeGoToSentence();
+            } else {
+                showNotification('Número inválido', 'error');
+            }
+        }
+
+        // Alternar configurações
+        function toggleSettings() {
+            document.getElementById('settingsOverlay').classList.toggle('active');
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeInputBtn').style.backgroundColor = mode === 'input' ? '#3498db' : '#95a5a6';
+            document.getElementById('modeOutputBtn').style.backgroundColor = mode === 'output' ? '#3498db' : '#95a5a6';
+        }
+
+        function updateSpeed(event) {
+            currentSpeed = parseFloat(event.target.value);
+            document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+        }
+
+        function updateIntervalDisplay() {
+            const interval = document.getElementById('intervalSlider').value;
+            const display = interval == 0 ? '🚀 Leitura Corrente' : `⏱️ ${interval}s`;
+            document.getElementById('intervalDisplay').textContent = display;
+        }
+
+        function updateLoopRange() {
+            const currentSentences = getCurrentSentences();
+            loopStart = parseInt(document.getElementById('loopStart').value) || 0;
+            loopEnd = parseInt(document.getElementById('loopEnd').value) || currentSentences.length - 1;
+            document.getElementById('loopRangeDisplay').textContent = `Loop: ${loopStart + 1} até ${loopEnd + 1}`;
+        }
+
+        function saveSettings() {
+            showNotification('Configurações salvas!', 'success');
+            toggleSettings();
+        }
+
+        // Alternar editor
+        function toggleEditor() {
+            const overlay = document.getElementById('editorOverlay');
+            overlay.classList.toggle('active');
+            if (overlay.classList.contains('active')) {
+                populateEditorTable();
+            }
+        }
+
+        function populateEditorTable() {
+            const tbody = document.getElementById('editorTableBody');
+            tbody.innerHTML = '';
+            sentences.forEach((sentence, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="padding: 10px; border: 1px solid #ddd;"><input type="text" value="${sentence.original}" style="width: 100%; border: none; padding: 5px;"></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><input type="text" value="${sentence.translation}" style="width: 100%; border: none; padding: 5px;"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function addNewRow() {
+            sentences.push({ original: '', translation: '' });
+            populateEditorTable();
+        }
+
+        function saveChanges() {
+            const rows = document.querySelectorAll('#editorTableBody tr');
+            sentences = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs[0].value && inputs[1].value) {
+                    sentences.push({
+                        original: inputs[0].value,
+                        translation: inputs[1].value
+                    });
+                }
+            });
+            updateUI();
+            toggleEditor();
+            showNotification('Alterações salvas!', 'success');
+        }
+
+        // Atualizar UI
+        function updateUI() {
+            // Atualizar contadores de abas
+            document.getElementById('allSentencesCount').textContent = sentences.length;
+            document.getElementById('markedSentencesCount').textContent = markedSentences.length;
+
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) {
+                document.querySelector('.sentence-text').textContent = currentTab === 'marked' ? 'Nenhuma frase marcada' : 'Nenhuma frase carregada';
+                document.querySelector('.translation-text').textContent = '';
+                document.getElementById('sentence-counter').textContent = '0 / 0';
+                return;
+            }
+
+            const sentence = currentSentences[currentSentenceIndex];
+            document.querySelector('.sentence-text').textContent = sentence.original;
+            document.querySelector('.translation-text').textContent = showTranslation ? sentence.translation : '';
+            document.querySelector('.translation-text').style.display = showTranslation ? 'block' : 'none';
+            document.getElementById('sentence-counter').textContent = `${currentSentenceIndex + 1} / ${currentSentences.length}`;
+        }
+
+        // Mostrar/ocultar overlay de carregamento
+        function showLoadingOverlay() {
+            document.getElementById('loading-overlay').classList.add('active');
+        }
+
+        function hideLoadingOverlay() {
+            document.getElementById('loading-overlay').classList.remove('active');
+        }
+
+        // Notificações
+        function showNotification(message, type = 'info') {
+            const area = document.getElementById('notification-area');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type} show`;
+            notification.textContent = message;
+            area.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // Fechar overlays ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'uploadOptionsOverlay') hideUploadOptions();
+            if (e.target.id === 'settingsOverlay') toggleSettings();
+            if (e.target.id === 'editorOverlay') toggleEditor();
+            if (e.target.id === 'goToSentenceOverlay') closeGoToSentence();
+        });
+
+        // Event listeners para Enter
+        document.addEventListener('keypress', (e) => {
+            if (e.target.id === 'sentenceNumberInput' && e.key === 'Enter') {
+                goToSentenceNumber();
+            }
+        });
+
+        // Inicializar ao carregar
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
