@@ -1043,6 +1043,17 @@ body {
             utterance.rate = currentSpeed;
             const langCode = document.querySelector('#language-selector button.active').dataset.lang;
             utterance.lang = langCode;
+
+            const voices = speechSynthesis.getVoices();
+
+            // procura a voz Francisca
+            const francisca = voices.find(v => v.name.includes("Francisca"));
+
+            if (francisca) {
+            utterance.voice = francisca;
+            }
+
+            speechSynthesis.speak(utterance);
             
             // Definir voz preferida
             const preferredVoice = getPreferredVoiceForLanguage(langCode);
