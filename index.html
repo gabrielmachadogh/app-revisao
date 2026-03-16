@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-     <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#4F46E5">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -9,19 +9,14 @@
     <meta name="apple-mobile-web-app-title" content="Language Learning">
     <title>Language Learning App</title>
     
-    <!-- PWA Configuration -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TTS Pro">
     
-    <!-- Meta tags para SEO e compartilhamento -->
     <meta name="description" content="Aplicativo de aprendizado de idiomas com pronúncia nativa e text-to-speech avançado">
     <meta name="keywords" content="aprendizado, idiomas, TTS, text-to-speech, pronúncia, nativo">
     <meta name="author" content="Language Learning TTS Pro">
     
-    <!-- Open Graph para compartilhamento -->
     <meta property="og:title" content="Language Learning TTS Pro">
     <meta property="og:description" content="Aprenda idiomas com pronúncia nativa">
     <meta property="og:type" content="website">
@@ -32,7 +27,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/franc@6.1.0/dist/franc.min.js"></script>
     
-    <!-- Google APIs -->
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
     
@@ -56,11 +50,11 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 480px;
+    max-width: 520px;
     margin: 20px;
     overflow: hidden;
     position: relative;
-    min-height: 600px;
+    min-height: 640px;
     display: flex;
     flex-direction: column;
 }
@@ -77,12 +71,12 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
     gap: 10px;
 }
 
 #header h1 {
-    font-size: 1.8em;
+    font-size: 1.5em;
     color: #2c3e50;
     margin: 0;
     line-height: 1.2;
@@ -92,6 +86,7 @@ body {
     display: flex;
     gap: 10px;
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .action-button {
@@ -99,7 +94,7 @@ body {
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 10px 15px;
+    padding: 10px 14px;
     font-size: 1em;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -108,14 +103,91 @@ body {
     justify-content: center;
 }
 
-.action-button img {
-    width: 24px;
-    height: 24px;
-    filter: invert(100%);
-}
-
 .action-button:hover {
     background-color: #45a049;
+}
+
+/* Deck bar */
+#deckBar {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.deck-bar-top {
+    display: flex;
+    gap: 10px;
+    align-items: end;
+}
+
+.deck-select-wrap {
+    flex: 1;
+}
+
+.deck-select-wrap label {
+    display: block;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+#deckSelector {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    box-sizing: border-box;
+}
+
+#currentDeckMeta {
+    margin-top: 8px;
+    font-size: 0.88em;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* Tabs */
+#tabsContainer {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.96em;
+    color: #999;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab-btn.active {
+    color: #3498db;
+    border-bottom-color: #3498db;
+}
+
+.tab-btn:hover {
+    color: #3498db;
+}
+
+/* Panels */
+#studyPanel {
+    display: block;
+}
+
+#pdfPromptPanel {
+    display: none;
 }
 
 /* Sentence Display */
@@ -130,19 +202,40 @@ body {
     flex-direction: column;
     justify-content: center;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 2px solid #dfe7ef;
+    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+#sentence-display.phase-question {
+    background: linear-gradient(180deg, #f9fbfd 0%, #f4f8fb 100%);
+    border-color: #d6e9f8;
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.05),
+        0 0 0 3px rgba(52, 152, 219, 0.06);
+}
+
+#sentence-display.phase-answer {
+    background: linear-gradient(180deg, #f3fcf6 0%, #ecfaf1 100%);
+    border-color: #bfe8cf;
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.05),
+        0 0 0 3px rgba(46, 204, 113, 0.10);
 }
 
 .sentence-text {
     font-size: 1.4em;
     margin: 5px 0;
     line-height: 1.4;
+    white-space: pre-line;
+    color: #333;
 }
 
 .translation-text {
     color: #7f8c8d;
-    font-size: 1.1em;
+    font-size: 1.08em;
     display: none;
     margin-top: 10px;
+    white-space: pre-line;
 }
 
 /* Controls */
@@ -169,12 +262,6 @@ body {
     justify-content: center;
 }
 
-.nav-button img {
-    width: 24px;
-    height: 24px;
-    filter: invert(100%);
-}
-
 .nav-button:hover {
     background-color: #2980b9;
 }
@@ -190,8 +277,8 @@ body {
     color: white;
     border: none;
     border-radius: 50%;
-    width: 70px;
-    height: 70px;
+    width: 72px;
+    height: 72px;
     font-size: 1.5em;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -199,12 +286,6 @@ body {
     align-items: center;
     justify-content: center;
     margin-bottom: 5px;
-}
-
-.play-pause-button img {
-    width: 36px;
-    height: 36px;
-    filter: invert(100%);
 }
 
 .play-pause-button:hover {
@@ -216,7 +297,7 @@ body {
     color: #7f8c8d;
 }
 
-/* Action Controls (Bottom) */
+/* Action Controls */
 #action-controls {
     display: flex;
     justify-content: space-around;
@@ -236,24 +317,120 @@ body {
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 10px 15px;
+    padding: 10px 14px;
     font-size: 0.9em;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-}
-
-.action-button-bottom img {
-    width: 20px;
-    height: 20px;
-    filter: invert(100%);
+    gap: 6px;
+    text-align: center;
 }
 
 .action-button-bottom:hover {
     background-color: #7f8c8d;
+}
+
+.small-button {
+    padding: 9px 12px;
+    font-size: 0.86em;
+}
+
+.danger-button {
+    background-color: #e74c3c !important;
+}
+
+.danger-button:hover {
+    background-color: #c0392b !important;
+}
+
+.primary-button {
+    background-color: #3498db !important;
+}
+
+.primary-button:hover {
+    background-color: #2980b9 !important;
+}
+
+.warning-button {
+    background-color: #f39c12 !important;
+}
+
+.warning-button:hover {
+    background-color: #e67e22 !important;
+}
+
+.success-button {
+    background-color: #2ecc71 !important;
+}
+
+.success-button:hover {
+    background-color: #27ae60 !important;
+}
+
+/* Helper / Prompt cards */
+.helper-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.helper-card h3 {
+    margin: 0 0 10px;
+    color: #2c3e50;
+    font-size: 1.05em;
+}
+
+.helper-note {
+    font-size: 0.92em;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.helper-card textarea,
+.helper-card select,
+.helper-card input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.92em;
+    background: #fff;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.helper-card textarea {
+    min-height: 180px;
+    resize: vertical;
+    font-family: Consolas, Monaco, monospace;
+}
+
+.helper-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.helper-actions .action-button-bottom {
+    flex: 1;
+    min-width: 150px;
+}
+
+.helper-badge {
+    display: inline-block;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.82em;
+    font-weight: 600;
+    margin-bottom: 10px;
 }
 
 /* Overlays */
@@ -280,12 +457,12 @@ body {
 
 .overlay-content {
     background-color: #ffffff;
-    padding: 30px;
+    padding: 24px;
     border-radius: 10px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 400px;
-    max-height: 80vh;
+    width: 92%;
+    max-width: 430px;
+    max-height: 86vh;
     overflow-y: auto;
     position: relative;
 }
@@ -293,7 +470,7 @@ body {
 .overlay-content h2 {
     margin-top: 0;
     color: #2c3e50;
-    font-size: 1.5em;
+    font-size: 1.45em;
     margin-bottom: 20px;
 }
 
@@ -306,14 +483,17 @@ body {
 
 .overlay-content input[type="range"],
 .overlay-content input[type="number"],
-.overlay-content textarea {
-    width: calc(100% - 20px);
+.overlay-content input[type="text"],
+.overlay-content textarea,
+.overlay-content select {
+    width: 100%;
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 1em;
     box-sizing: border-box;
+    background-color: #fff;
 }
 
 .overlay-content input[type="range"] {
@@ -322,7 +502,7 @@ body {
     height: 8px;
     background: #ddd;
     outline: none;
-    opacity: 0.7;
+    opacity: 0.8;
     transition: opacity .2s;
 }
 
@@ -344,24 +524,10 @@ body {
     cursor: pointer;
 }
 
-.radio-group {
-    margin-bottom: 20px;
-}
-
-.radio-group input[type="radio"] {
-    margin-right: 5px;
-}
-
-.radio-group label {
-    display: inline-block;
-    margin-right: 15px;
-    font-weight: normal;
-}
-
 #language-selector {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
@@ -373,7 +539,7 @@ body {
     padding: 8px 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
@@ -391,68 +557,112 @@ body {
     border-color: #95a5a6;
 }
 
-#save-settings-button, #editor-save-button, #editor-close-button,
-#goto-sentence-confirm-button, #goto-sentence-cancel-button, #editor-goto-line-button {
-    background-color: #2ecc71;
-    color: white;
+/* Voice collapsible */
+.voice-collapsible {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background-color: #fafafa;
+    overflow: hidden;
+}
+
+.voice-collapsible summary {
+    cursor: pointer;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #2c3e50;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.voice-collapsible summary::-webkit-details-marker {
+    display: none;
+}
+
+.voice-collapsible summary::after {
+    content: '\f078';
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    transition: transform 0.3s ease;
+}
+
+.voice-collapsible[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.voice-content {
+    padding: 0 15px 15px;
+}
+
+.voice-meta {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+/* Deck manager */
+#deckManagerList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.deck-item {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 12px;
+    background: #fafafa;
+}
+
+.deck-item.current {
+    border-color: #3498db;
+    background: #eef7ff;
+}
+
+.deck-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.deck-item-name {
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+.deck-item-stats {
+    font-size: 0.86em;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+.deck-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.mini-btn {
     border: none;
     border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 1em;
+    padding: 8px 10px;
+    color: white;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-top: 10px;
-    width: auto;
+    font-size: 0.82em;
 }
 
-#editor-close-button, #goto-sentence-cancel-button {
-    background-color: #e74c3c;
-    margin-left: 10px;
-}
-
-#editor-goto-line-button {
-    background-color: #f39c12;
-    margin-left: 10px;
-}
-
-#save-settings-button:hover, #editor-save-button:hover,
-#goto-sentence-confirm-button:hover {
-    background-color: #27ae60;
-}
-
-#editor-close-button:hover, #goto-sentence-cancel-button:hover {
-    background-color: #c0392b;
-}
-
-#editor-goto-line-button:hover {
-    background-color: #e67e22;
-}
-
-/* Editor Overlay */
-#editor-textarea {
-    width: calc(100% - 20px);
-    height: 200px;
-    resize: vertical;
-    font-family: monospace;
-    white-space: pre;
-    overflow-wrap: normal;
-    overflow-x: auto;
-}
-
+/* Editor */
 .editor-controls {
     display: flex;
     justify-content: flex-end;
     margin-top: 10px;
-}
-
-/* Go To Overlay */
-#goto-sentence-input {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 /* Notification Area */
@@ -465,16 +675,21 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: calc(100% - 40px);
+    max-width: 420px;
 }
 
 .notification {
     background-color: #333;
     color: white;
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 6px;
     margin-bottom: 10px;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
+    width: fit-content;
+    max-width: 100%;
+    text-align: center;
 }
 
 .notification.show {
@@ -495,7 +710,7 @@ body {
 
 /* Loading Overlay */
 #loading-overlay {
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.85);
     color: #333;
     font-size: 1.2em;
     flex-direction: column;
@@ -516,19 +731,13 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Responsive Adjustments */
 @media (max-width: 600px) {
     #header h1 {
-        font-size: 1.3em;
+        font-size: 1.2em;
     }
 
     .action-button {
         padding: 8px 12px;
-    }
-
-    .action-button img {
-        width: 20px;
-        height: 20px;
     }
 
     .sentence-text {
@@ -536,110 +745,61 @@ body {
     }
 
     .play-pause-button {
-        width: 60px;
-        height: 60px;
-    }
-
-    .play-pause-button img {
-        width: 30px;
-        height: 30px;
+        width: 62px;
+        height: 62px;
     }
 
     .nav-button {
-        width: 40px;
-        height: 40px;
-    }
-
-    .nav-button img {
-        width: 20px;
-        height: 20px;
+        width: 42px;
+        height: 42px;
     }
 
     .action-button-bottom {
         padding: 8px 10px;
-        font-size: 0.8em;
+        font-size: 0.82em;
     }
 
-    .action-button-bottom img {
-        width: 18px;
-        height: 18px;
+    .deck-bar-top {
+        flex-direction: column;
+        align-items: stretch;
     }
-}
-
-/* Tabs Container */
-#tabsContainer {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 1em;
-    color: #999;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.tab-btn.active {
-    color: #3498db;
-    border-bottom-color: #3498db;
-}
-
-.tab-btn:hover {
-    color: #3498db;
-}
-
-.tab-count {
-    background: #3498db;
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8em;
-    margin-left: 5px;
-}
-
-.tab-btn.active .tab-count {
-    background: #3498db;
-}
-
-.tab-btn:not(.active) .tab-count {
-    background: #999;
 }
     </style>
 </head>
 <body>
-    <!-- Container principal -->
     <div id="app-container">
-        <!-- Main screen -->
         <div id="main-screen">
-            <!-- Header -->
             <div id="header">
                 <h1><i class="fas fa-volume-up"></i> Language Learning TTS Pro</h1>
                 <div class="header-buttons">
                     <button class="action-button" title="Carregar Arquivo" onclick="showUploadOptions()">
                         <i class="fas fa-folder-open"></i>
                     </button>
+                    <button class="action-button" title="Decks" onclick="toggleDeckManager()">
+                        <i class="fas fa-layer-group"></i>
+                    </button>
                     <button class="action-button" title="Configurações" onclick="toggleSettings()">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <button class="action-button" title="Editar Planilha" onclick="toggleEditor()">
+                    <button class="action-button" title="Editar Deck Atual" onclick="toggleEditor()">
                         <i class="fas fa-edit"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Tabs Container -->
+            <div id="deckBar">
+                <div class="deck-bar-top">
+                    <div class="deck-select-wrap">
+                        <label for="deckSelector">Deck atual</label>
+                        <select id="deckSelector" onchange="changeCurrentDeck(this.value)"></select>
+                    </div>
+                    <button class="action-button-bottom primary-button" onclick="toggleDeckManager()">
+                        <i class="fas fa-layer-group"></i> Gerenciar Decks
+                    </button>
+                </div>
+                <div id="currentDeckMeta"></div>
+            </div>
+
             <div id="tabsContainer">
                 <button id="mainTab" class="tab-btn active" onclick="switchTab('main')">
                     <i class="fas fa-list"></i> Todas (<span id="allSentencesCount">0</span>)
@@ -647,55 +807,146 @@ body {
                 <button id="markedTab" class="tab-btn" onclick="switchTab('marked')">
                     <i class="fas fa-bookmark"></i> Marcadas (<span id="markedSentencesCount">0</span>)
                 </button>
-            </div>
-
-            <!-- Sentence Display -->
-            <div id="sentence-display">
-                <div class="sentence-text">Nenhuma frase carregada</div>
-                <div class="translation-text"></div>
-            </div>
-
-            <!-- Sentence Counter -->
-            <div id="sentence-counter" style="text-align: center; margin-bottom: 20px;">0 / 0</div>
-
-            <!-- Controls -->
-            <div id="controls">
-                <button class="nav-button" title="Anterior" onclick="showPreviousSentence()">
-                    <i class="fas fa-step-backward"></i>
+                <button id="pdfPromptTab" class="tab-btn" onclick="switchTab('pdfPrompt')">
+                    <i class="fas fa-file-pdf"></i> Prompt PDF
                 </button>
-                <div id="play-pause-container">
-                    <button class="play-pause-button" title="Play/Pause" onclick="togglePlayPause()">
-                        <i class="fas fa-play"></i>
+            </div>
+
+            <div id="studyPanel">
+                <div id="sentence-display" class="phase-question">
+                    <div class="sentence-text">Nenhuma frase carregada</div>
+                    <div class="translation-text"></div>
+                </div>
+
+                <div id="sentence-counter" style="text-align: center; margin-bottom: 20px;">0 / 0</div>
+
+                <div id="controls">
+                    <button class="nav-button" title="Anterior" onclick="showPreviousSentence()">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <div id="play-pause-container">
+                        <button class="play-pause-button" title="Play/Pause" onclick="togglePlayPause()">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    <button class="nav-button" title="Próxima" onclick="showNextSentence()">
+                        <i class="fas fa-step-forward"></i>
                     </button>
                 </div>
-                <button class="nav-button" title="Próxima" onclick="showNextSentence()">
-                    <i class="fas fa-step-forward"></i>
-                </button>
+
+                <div id="action-controls">
+                    <button id="toggleAnswerButton" class="action-button-bottom" title="Mostrar Resposta" onclick="toggleShowAnswer()">
+                        <i class="fas fa-eye"></i> Mostrar Resposta
+                    </button>
+                    <button id="markSentenceButton" class="action-button-bottom" title="Marcar Frase" onclick="toggleMarkSentence()">
+                        <i class="fas fa-bookmark"></i> Marcar
+                    </button>
+                    <button class="action-button-bottom" title="Ir à frase específica" onclick="showGoToSentence()">
+                        <i class="fas fa-search"></i> Ir à Frase
+                    </button>
+                </div>
             </div>
 
-            <!-- Action Controls -->
-            <div id="action-controls">
-                <button id="toggleAnswerButton" class="action-button-bottom" title="Mostrar Resposta" onclick="toggleShowAnswer()">
-                    <i class="fas fa-eye"></i> Mostrar Resposta
-                </button>
-                <button id="markSentenceButton" class="action-button-bottom" title="Marcar Frase" onclick="toggleMarkSentence()">
-                    <i class="fas fa-bookmark"></i> Marcar
-                </button>
-                <button class="action-button-bottom" title="Ir à frase específica" onclick="showGoToSentence()">
-                    <i class="fas fa-search"></i> Ir à Frase
-                </button>
+            <div id="pdfPromptPanel">
+                <div class="helper-card">
+                    <div class="helper-badge">Leitura inteligente de PDF FRENTE/VERSO</div>
+                    <h3><i class="fas fa-info-circle"></i> Como o app entende PDFs</h3>
+                    <div class="helper-note">
+                        O app tenta reconhecer PDFs que tenham cartões no formato <strong>FRENTE</strong> e <strong>VERSO</strong>.
+                        Quando encontra esses rótulos, ele os remove automaticamente.
+                        Então o app <strong>não fala “frente” e “verso”</strong> e também <strong>não mostra esses rótulos no display</strong>.
+                        <br><br>
+                        O conteúdo de <strong>FRENTE</strong> vira a pergunta, e o conteúdo de <strong>VERSO</strong> vira a resposta.
+                        <br><br>
+                        Se o PDF não estiver estruturado ou for imagem escaneada, use o prompt abaixo para reorganizar o texto em alguma IA.
+                    </div>
+                </div>
+
+                <div class="helper-card">
+                    <h3><i class="fas fa-robot"></i> Prompt para IA</h3>
+                    <div class="helper-note">
+                        Copie este prompt e cole na IA da sua preferência. Se quiser, copie também o texto bruto do último PDF.
+                    </div>
+                    <textarea id="pdfPromptTextarea" readonly></textarea>
+                    <div class="helper-actions">
+                        <button class="action-button-bottom" onclick="copyPdfPrompt()">
+                            <i class="fas fa-copy"></i> Copiar Prompt
+                        </button>
+                        <button class="action-button-bottom primary-button" onclick="copyCombinedPromptWithRawText()">
+                            <i class="fas fa-file-export"></i> Copiar Prompt + Texto Bruto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="helper-card">
+                    <h3><i class="fas fa-file-alt"></i> Exemplo do formato aceito</h3>
+                    <textarea id="pdfFormatExampleTextarea" readonly></textarea>
+                    <div class="helper-actions">
+                        <button class="action-button-bottom" onclick="copyPdfFormatExample()">
+                            <i class="fas fa-copy"></i> Copiar Exemplo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="helper-card">
+                    <h3><i class="fas fa-file-import"></i> Texto bruto extraído do último PDF</h3>
+                    <div class="helper-note">
+                        Se o PDF não for lido corretamente, copie este texto e envie junto com o prompt para a IA.
+                    </div>
+                    <textarea id="lastPdfRawTextArea" readonly></textarea>
+                    <div class="helper-actions">
+                        <button class="action-button-bottom" onclick="copyLastPdfRawText()">
+                            <i class="fas fa-copy"></i> Copiar Texto Bruto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="helper-card">
+                    <h3><i class="fas fa-paste"></i> Colar texto estruturado da IA</h3>
+                    <div class="helper-note">
+                        Cole aqui o texto que a IA devolveu no formato FRENTE/VERSO e escolha em qual deck ele deve entrar.
+                    </div>
+
+                    <label for="pasteTargetDeckSelect" style="font-weight: 600; margin-bottom: 6px; display: block;">Deck de destino</label>
+                    <select id="pasteTargetDeckSelect"></select>
+
+                    <label for="pasteImportModeSelect" style="font-weight: 600; margin-bottom: 6px; display: block;">Modo de importação</label>
+                    <select id="pasteImportModeSelect">
+                        <option value="replace">Substituir conteúdo do deck</option>
+                        <option value="append">Adicionar ao deck</option>
+                    </select>
+
+                    <textarea id="structuredImportTextarea" placeholder="Cole aqui o texto estruturado..." oninput="handleStructuredImportDraftChange()"></textarea>
+
+                    <div class="helper-actions">
+                        <button class="action-button-bottom success-button" onclick="importStructuredTextToDeck()">
+                            <i class="fas fa-file-import"></i> Importar para o Deck
+                        </button>
+                        <button class="action-button-bottom warning-button" onclick="clearStructuredImport()">
+                            <i class="fas fa-eraser"></i> Limpar Texto
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Input de arquivo oculto -->
     <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" style="display: none;">
 
-    <!-- Overlay de opções de upload -->
     <div id="uploadOptionsOverlay" class="overlay">
         <div class="overlay-content">
-            <h2><i class="fas fa-cloud-upload-alt"></i> Escolha a Origem do Arquivo</h2>
-            <button class="action-button-bottom" style="width: 100%; margin-bottom: 10px;" onclick="selectLocalFile()">
+            <h2><i class="fas fa-cloud-upload-alt"></i> Importar Arquivo</h2>
+
+            <label for="uploadTargetDeckSelect">Deck de destino</label>
+            <select id="uploadTargetDeckSelect"></select>
+
+            <label for="uploadImportModeSelect">Modo de importação</label>
+            <select id="uploadImportModeSelect">
+                <option value="replace">Substituir conteúdo do deck</option>
+                <option value="append">Adicionar ao deck</option>
+            </select>
+
+            <button class="action-button-bottom primary-button" style="width: 100%; margin-bottom: 10px;" onclick="selectLocalFile()">
                 <i class="fas fa-laptop"></i> Arquivo Local
             </button>
             <button class="action-button-bottom" style="width: 100%;" onclick="selectFromGoogleDrive()">
@@ -704,33 +955,38 @@ body {
         </div>
     </div>
 
-    <!-- Overlay de configurações -->
     <div id="settingsOverlay" class="overlay">
         <div class="overlay-content">
             <h2><i class="fas fa-cog"></i> Configurações</h2>
             
             <label>Modo de Reprodução:</label>
-            <div style="margin-bottom: 20px;">
-                <button id="modeInputBtn" class="action-button-bottom" style="background-color: #3498db; width: 48%; margin-right: 2%;" onclick="setMode('input')">
+            <div style="margin-bottom: 20px; display: flex; gap: 8px;">
+                <button id="modeInputBtn" class="action-button-bottom primary-button" style="flex: 1;" onclick="setMode('input')">
                     <i class="fas fa-microphone"></i> Input (A → B)
                 </button>
-                <button id="modeOutputBtn" class="action-button-bottom" style="width: 48%;" onclick="setMode('output')">
+                <button id="modeOutputBtn" class="action-button-bottom" style="flex: 1;" onclick="setMode('output')">
                     <i class="fas fa-volume-up"></i> Output (B → A)
                 </button>
             </div>
 
             <label>Falar Resposta:</label>
-            <div style="margin-bottom: 20px;">
-                <button id="speakAnswerOnBtn" class="action-button-bottom" style="width: 48%; margin-right: 2%;" onclick="setSpeakAnswer(true)">
+            <div style="margin-bottom: 20px; display: flex; gap: 8px;">
+                <button id="speakAnswerOnBtn" class="action-button-bottom" style="flex: 1;" onclick="setSpeakAnswer(true)">
                     <i class="fas fa-toggle-on"></i> Ligado
                 </button>
-                <button id="speakAnswerOffBtn" class="action-button-bottom" style="background-color: #3498db; width: 48%;" onclick="setSpeakAnswer(false)">
+                <button id="speakAnswerOffBtn" class="action-button-bottom primary-button" style="flex: 1;" onclick="setSpeakAnswer(false)">
                     <i class="fas fa-toggle-off"></i> Desligado
                 </button>
             </div>
 
             <label>Velocidade: <span id="speedDisplay">1.0x</span></label>
             <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(event)">
+
+            <label>Repetir pergunta:</label>
+            <input type="number" id="questionRepeatInput" min="1" max="10" value="1" oninput="updateQuestionRepeat()">
+            <div id="questionRepeatDisplay" style="text-align: center; margin-bottom: 15px;">
+                Pergunta será falada 1 vez
+            </div>
 
             <label>Pausa entre pergunta e resposta: <span id="answerPauseDisplay">⚡ Instantâneo</span></label>
             <input type="range" id="answerPauseSlider" min="0" max="10" step="0.5" value="0" oninput="updateAnswerPauseDisplay()">
@@ -740,6 +996,27 @@ body {
 
             <label>Seletor de Idioma:</label>
             <div id="language-selector"></div>
+
+            <details class="voice-collapsible">
+                <summary><i class="fas fa-list"></i>&nbsp; Selecionar vozes disponíveis</summary>
+                <div class="voice-content">
+                    <div id="voicesLoadedInfo" class="voice-meta">Carregando vozes...</div>
+
+                    <button class="action-button-bottom primary-button" style="width: 100%; margin-bottom: 12px;" onclick="loadVoices()">
+                        <i class="fas fa-rotate"></i> Atualizar lista de vozes
+                    </button>
+
+                    <label for="questionVoiceSelect">Voz da pergunta:</label>
+                    <select id="questionVoiceSelect" onchange="updateVoiceSelections()">
+                        <option value="">Automático</option>
+                    </select>
+
+                    <label for="answerVoiceSelect">Voz da resposta:</label>
+                    <select id="answerVoiceSelect" onchange="updateVoiceSelections()">
+                        <option value="">Automático</option>
+                    </select>
+                </div>
+            </details>
 
             <label>Loop Personalizado:</label>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -754,19 +1031,37 @@ body {
             </div>
             <div id="loopRangeDisplay" style="text-align: center; margin-bottom: 15px;">Loop: 1 até 1</div>
 
-            <button id="save-settings-button" onclick="saveSettings()">
+            <button id="save-settings-button" class="action-button-bottom success-button" style="width: 100%;" onclick="saveSettings()">
                 <i class="fas fa-save"></i> Salvar Configurações
             </button>
         </div>
     </div>
 
-    <!-- Overlay do editor -->
+    <div id="deckManagerOverlay" class="overlay">
+        <div class="overlay-content">
+            <h2><i class="fas fa-layer-group"></i> Decks Salvos</h2>
+
+            <label for="newDeckNameInput">Novo deck</label>
+            <input type="text" id="newDeckNameInput" placeholder="Digite o nome do novo deck">
+            <button class="action-button-bottom success-button" style="width: 100%; margin-bottom: 15px;" onclick="createDeckFromInput()">
+                <i class="fas fa-plus"></i> Criar Deck
+            </button>
+
+            <div id="deckManagerList"></div>
+
+            <div class="editor-controls">
+                <button class="action-button-bottom danger-button" onclick="toggleDeckManager()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="editorOverlay" class="overlay">
         <div class="overlay-content">
-            <h2><i class="fas fa-edit"></i> Editor de Planilha</h2>
+            <h2 id="editorTitle"><i class="fas fa-edit"></i> Editor do Deck</h2>
             <div style="margin-bottom: 15px;">
-                <input type="number" id="goToRowInput" placeholder="Ir à linha..." min="1" style="width: calc(100% - 20px); padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                <button class="action-button-bottom" style="width: 100%; margin-bottom: 10px;" onclick="addNewRow()">
+                <button class="action-button-bottom success-button" style="width: 100%; margin-bottom: 10px;" onclick="addNewRow()">
                     <i class="fas fa-plus"></i> Adicionar Linha
                 </button>
             </div>
@@ -775,62 +1070,65 @@ body {
                     <thead>
                         <tr style="background-color: #f0f0f0;">
                             <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Original (A)</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tradução (B)</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tradução / Resposta (B)</th>
                         </tr>
                     </thead>
-                    <tbody id="editorTableBody">
-                        <!-- Linhas serão adicionadas dinamicamente -->
-                    </tbody>
+                    <tbody id="editorTableBody"></tbody>
                 </table>
             </div>
             <div class="editor-controls">
-                <button id="editor-save-button" onclick="saveChanges()">
+                <button class="action-button-bottom success-button" onclick="saveChanges()">
                     <i class="fas fa-save"></i> Salvar
                 </button>
-                <button id="editor-close-button" onclick="toggleEditor()">
+                <button class="action-button-bottom danger-button" onclick="toggleEditor()">
                     <i class="fas fa-times"></i> Fechar
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Overlay "Ir à frase" -->
     <div id="goToSentenceOverlay" class="overlay">
         <div class="overlay-content">
             <h2><i class="fas fa-search"></i> Ir à Frase</h2>
             <label for="sentenceNumberInput">Número da frase:</label>
-            <input type="number" id="sentenceNumberInput" placeholder="Digite o número da frase" min="1" style="width: calc(100% - 20px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <input type="number" id="sentenceNumberInput" placeholder="Digite o número da frase" min="1">
             <div id="totalSentencesInfo" style="text-align: center; margin-bottom: 15px; font-size: 0.9em; color: #666;">Total: 0 frases</div>
             <div class="editor-controls">
-                <button id="goto-sentence-confirm-button" onclick="goToSentenceNumber()">
+                <button class="action-button-bottom success-button" onclick="goToSentenceNumber()">
                     <i class="fas fa-arrow-right"></i> Ir
                 </button>
-                <button id="goto-sentence-cancel-button" onclick="closeGoToSentence()">
+                <button class="action-button-bottom danger-button" onclick="closeGoToSentence()">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Notification Area -->
     <div id="notification-area"></div>
 
-    <!-- Loading Overlay -->
     <div id="loading-overlay" class="overlay">
         <div class="loading-spinner"></div>
         <span>Processando arquivo...</span>
     </div>
 
     <script>
-        let sentences = [];
-        let markedSentences = [];
+        const STORAGE_KEY = 'languageLearningTTSProStateV5';
+        const FRONT_MARKER_PATTERN = '(?:FRENTE|FRONT|PERGUNTA|QUESTION)(?:\\s*#?\\d+)?';
+        const BACK_MARKER_PATTERN = '(?:VERSO|BACK|RESPOSTA|ANSWER)(?:\\s*#?\\d+)?';
+        const CARD_SEPARATOR_PATTERN = '(?:===+\\s*(?:CARD|CARTAO)?\\s*===+|---+|___+|\\*\\*\\*+)';
+
+        let decks = [];
+        let currentDeckId = null;
+
         let playInterval = null;
         let restartTimeout = null;
         let answerDelayTimeout = null;
+        let questionRepeatTimeout = null;
+
         let currentMode = 'input';
         let currentSpeed = 1.0;
         let loopStart = 0;
-        let loopEnd = -1;
+        let loopEnd = 0;
         let isPlaying = false;
         let currentSentenceIndex = 0;
         let currentTab = 'main';
@@ -838,32 +1136,538 @@ body {
         let playbackSession = 0;
         let speakAnswerEnabled = false;
         let currentSpeechPhase = 'question';
+        let questionRepeatCount = 1;
+        let answerPauseSeconds = 0;
+        let intervalSeconds = 0;
 
-        // Inicialização
+        let selectedQuestionVoiceURI = '';
+        let selectedAnswerVoiceURI = '';
+        let selectedLanguageCode = 'pt-BR';
+
+        let availableVoices = [];
+        let suppressAutoSave = false;
+        let lastPdfRawText = '';
+        let structuredImportDraft = '';
+
+        function configurePdfJs() {
+            if (window.pdfjsLib) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+        }
+
+        function generateDeckId() {
+            return 'deck_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+        }
+
+        function sanitizeDeckName(name) {
+            const cleaned = String(name || '').trim().replace(/\s+/g, ' ');
+            return cleaned ? cleaned.slice(0, 80) : 'Novo Deck';
+        }
+
+        function clampNumber(value, min, max, fallback) {
+            const num = Number(value);
+            if (Number.isNaN(num)) return fallback;
+            return Math.max(min, Math.min(max, num));
+        }
+
+        function clampInt(value, min, max, fallback) {
+            const num = parseInt(value, 10);
+            if (Number.isNaN(num)) return fallback;
+            return Math.max(min, Math.min(max, num));
+        }
+
+        function isSameSentence(a, b) {
+            return !!a && !!b && a.original === b.original && a.translation === b.translation;
+        }
+
+        function sanitizeSentenceArray(arr) {
+            return (Array.isArray(arr) ? arr : [])
+                .filter(item =>
+                    item &&
+                    typeof item.original === 'string' &&
+                    typeof item.translation === 'string'
+                )
+                .map(item => ({
+                    original: String(item.original).trim(),
+                    translation: String(item.translation).trim()
+                }))
+                .filter(item => item.original && item.translation);
+        }
+
+        function createDeckObject(name = 'Novo Deck', sentences = [], markedSentences = []) {
+            const cleanSentences = sanitizeSentenceArray(sentences);
+            const cleanMarked = sanitizeSentenceArray(markedSentences).filter(marked =>
+                cleanSentences.some(sentence => isSameSentence(sentence, marked))
+            );
+
+            return {
+                id: generateDeckId(),
+                name: sanitizeDeckName(name),
+                sentences: cleanSentences,
+                markedSentences: cleanMarked,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+        }
+
+        function sanitizeDeckList(arr) {
+            const list = [];
+            const usedIds = new Set();
+
+            (Array.isArray(arr) ? arr : []).forEach(deck => {
+                const deckObj = {
+                    id: deck && deck.id ? String(deck.id) : generateDeckId(),
+                    name: sanitizeDeckName(deck && deck.name),
+                    sentences: sanitizeSentenceArray(deck && deck.sentences),
+                    markedSentences: [],
+                    createdAt: Number(deck && deck.createdAt) || Date.now(),
+                    updatedAt: Number(deck && deck.updatedAt) || Date.now()
+                };
+
+                if (usedIds.has(deckObj.id)) {
+                    deckObj.id = generateDeckId();
+                }
+                usedIds.add(deckObj.id);
+
+                deckObj.markedSentences = sanitizeSentenceArray(deck && deck.markedSentences).filter(marked =>
+                    deckObj.sentences.some(sentence => isSameSentence(sentence, marked))
+                );
+
+                list.push(deckObj);
+            });
+
+            return list;
+        }
+
+        function ensureDecksExist() {
+            if (!Array.isArray(decks) || decks.length === 0) {
+                decks = [createDeckObject('Deck Principal')];
+            }
+
+            if (!decks.some(deck => deck.id === currentDeckId)) {
+                currentDeckId = decks[0].id;
+            }
+        }
+
+        function getDeckById(deckId) {
+            ensureDecksExist();
+            return decks.find(deck => deck.id === deckId) || null;
+        }
+
+        function getCurrentDeck() {
+            ensureDecksExist();
+            return getDeckById(currentDeckId) || decks[0];
+        }
+
+        function getDeckSentences(deckId = currentDeckId) {
+            const deck = getDeckById(deckId);
+            return deck ? deck.sentences : [];
+        }
+
+        function getDeckMarkedSentences(deckId = currentDeckId) {
+            const deck = getDeckById(deckId);
+            return deck ? deck.markedSentences : [];
+        }
+
+        function touchDeck(deck) {
+            if (deck) deck.updatedAt = Date.now();
+        }
+
+        function dedupePairs(pairs) {
+            const unique = [];
+            const seen = new Set();
+
+            for (const pair of sanitizeSentenceArray(pairs)) {
+                const original = cleanCardSide(pair.original);
+                const translation = cleanCardSide(pair.translation);
+
+                if (!original || !translation) continue;
+
+                const key = `${original}|||${translation}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push({ original, translation });
+                }
+            }
+
+            return unique;
+        }
+
+        function setLoopToCurrentListFullRange() {
+            const total = getCurrentSentences().length;
+            loopStart = 0;
+            loopEnd = Math.max(0, total - 1);
+
+            const loopStartInput = document.getElementById('loopStart');
+            const loopEndInput = document.getElementById('loopEnd');
+
+            if (loopStartInput) loopStartInput.value = loopStart;
+            if (loopEndInput) loopEndInput.value = loopEnd;
+        }
+
+        function syncStateFromInputsForPersistence() {
+            const speedSlider = document.getElementById('speedSlider');
+            const repeatInput = document.getElementById('questionRepeatInput');
+            const answerPauseSlider = document.getElementById('answerPauseSlider');
+            const intervalSlider = document.getElementById('intervalSlider');
+            const loopStartInput = document.getElementById('loopStart');
+            const loopEndInput = document.getElementById('loopEnd');
+            const questionVoiceSelect = document.getElementById('questionVoiceSelect');
+            const answerVoiceSelect = document.getElementById('answerVoiceSelect');
+            const structuredTextarea = document.getElementById('structuredImportTextarea');
+
+            if (speedSlider) currentSpeed = clampNumber(speedSlider.value, 0.5, 2.0, currentSpeed);
+            if (repeatInput) questionRepeatCount = clampInt(repeatInput.value, 1, 10, questionRepeatCount);
+            if (answerPauseSlider) answerPauseSeconds = clampNumber(answerPauseSlider.value, 0, 10, answerPauseSeconds);
+            if (intervalSlider) intervalSeconds = clampNumber(intervalSlider.value, 0, 10, intervalSeconds);
+            if (loopStartInput) loopStart = clampInt(loopStartInput.value, 0, 999999, loopStart);
+            if (loopEndInput) loopEnd = clampInt(loopEndInput.value, 0, 999999, loopEnd);
+            if (questionVoiceSelect) selectedQuestionVoiceURI = questionVoiceSelect.value || '';
+            if (answerVoiceSelect) selectedAnswerVoiceURI = answerVoiceSelect.value || '';
+            if (structuredTextarea) structuredImportDraft = structuredTextarea.value || '';
+        }
+
+        function saveAppState() {
+            if (suppressAutoSave) return;
+
+            try {
+                syncStateFromInputsForPersistence();
+
+                const state = {
+                    version: 5,
+                    settings: {
+                        currentMode,
+                        currentSpeed,
+                        loopStart,
+                        loopEnd,
+                        speakAnswerEnabled,
+                        questionRepeatCount,
+                        answerPauseSeconds,
+                        intervalSeconds,
+                        selectedQuestionVoiceURI,
+                        selectedAnswerVoiceURI,
+                        selectedLanguageCode
+                    },
+                    ui: {
+                        currentTab,
+                        currentSentenceIndex,
+                        showTranslation,
+                        currentDeckId
+                    },
+                    data: {
+                        decks,
+                        lastPdfRawText,
+                        structuredImportDraft
+                    }
+                };
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (error) {
+                console.warn('Falha ao salvar estado:', error);
+            }
+        }
+
+        function loadAppState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+
+                const state = JSON.parse(raw);
+
+                if (state.settings) {
+                    currentMode = ['input', 'output'].includes(state.settings.currentMode) ? state.settings.currentMode : 'input';
+                    currentSpeed = clampNumber(state.settings.currentSpeed, 0.5, 2.0, 1.0);
+                    loopStart = clampInt(state.settings.loopStart, 0, 999999, 0);
+                    loopEnd = clampInt(state.settings.loopEnd, 0, 999999, 0);
+                    speakAnswerEnabled = !!state.settings.speakAnswerEnabled;
+                    questionRepeatCount = clampInt(state.settings.questionRepeatCount, 1, 10, 1);
+                    answerPauseSeconds = clampNumber(state.settings.answerPauseSeconds, 0, 10, 0);
+                    intervalSeconds = clampNumber(state.settings.intervalSeconds, 0, 10, 0);
+                    selectedQuestionVoiceURI = typeof state.settings.selectedQuestionVoiceURI === 'string' ? state.settings.selectedQuestionVoiceURI : '';
+                    selectedAnswerVoiceURI = typeof state.settings.selectedAnswerVoiceURI === 'string' ? state.settings.selectedAnswerVoiceURI : '';
+                    selectedLanguageCode = typeof state.settings.selectedLanguageCode === 'string' ? state.settings.selectedLanguageCode : 'pt-BR';
+                }
+
+                if (state.ui) {
+                    currentTab = ['main', 'marked', 'pdfPrompt'].includes(state.ui.currentTab) ? state.ui.currentTab : 'main';
+                    currentSentenceIndex = clampInt(state.ui.currentSentenceIndex, 0, 999999, 0);
+                    showTranslation = !!state.ui.showTranslation;
+                    currentDeckId = typeof state.ui.currentDeckId === 'string' ? state.ui.currentDeckId : null;
+                }
+
+                if (state.data) {
+                    decks = sanitizeDeckList(state.data.decks);
+                    lastPdfRawText = typeof state.data.lastPdfRawText === 'string' ? state.data.lastPdfRawText : '';
+                    structuredImportDraft = typeof state.data.structuredImportDraft === 'string' ? state.data.structuredImportDraft : '';
+                }
+
+                ensureDecksExist();
+            } catch (error) {
+                console.warn('Falha ao carregar estado:', error);
+                decks = [createDeckObject('Deck Principal')];
+                currentDeckId = decks[0].id;
+            }
+        }
+
         function init() {
-            loadVoices();
+            suppressAutoSave = true;
+            configurePdfJs();
+            loadAppState();
+            ensureDecksExist();
             setupLanguageSelector();
-            setMode(currentMode);
-            setSpeakAnswer(speakAnswerEnabled);
+            populatePdfPromptTab();
+            updateLastPdfRawTextArea();
+            refreshDeckSelectors();
+            loadVoices();
+
             document.getElementById('speedSlider').value = currentSpeed;
             document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+            document.getElementById('questionRepeatInput').value = questionRepeatCount;
+            document.getElementById('answerPauseSlider').value = answerPauseSeconds;
+            document.getElementById('intervalSlider').value = intervalSeconds;
+            document.getElementById('loopStart').value = loopStart;
+            document.getElementById('loopEnd').value = loopEnd;
+            document.getElementById('structuredImportTextarea').value = structuredImportDraft || '';
+
+            setMode(currentMode);
+            setSpeakAnswer(speakAnswerEnabled);
+            updateQuestionRepeat();
             updateAnswerPauseDisplay();
             updateIntervalDisplay();
             setActiveTabButtonState();
             updatePlayPauseButton();
             updateLoopRange();
             updateUI();
+
+            suppressAutoSave = false;
+            saveAppState();
         }
 
-        // Carregar vozes disponíveis
-        let availableVoices = [];
+        function populateDeckSelectElement(selectElement, selectedValue) {
+            if (!selectElement) return;
+
+            selectElement.innerHTML = '';
+            ensureDecksExist();
+
+            decks.forEach(deck => {
+                const option = document.createElement('option');
+                option.value = deck.id;
+                option.textContent = `${deck.name} (${deck.sentences.length})`;
+                selectElement.appendChild(option);
+            });
+
+            const valid = decks.some(deck => deck.id === selectedValue);
+            selectElement.value = valid ? selectedValue : currentDeckId;
+        }
+
+        function refreshDeckSelectors() {
+            ensureDecksExist();
+
+            const deckSelector = document.getElementById('deckSelector');
+            const uploadTargetDeckSelect = document.getElementById('uploadTargetDeckSelect');
+            const pasteTargetDeckSelect = document.getElementById('pasteTargetDeckSelect');
+
+            const previousUploadValue = uploadTargetDeckSelect ? uploadTargetDeckSelect.value : currentDeckId;
+            const previousPasteValue = pasteTargetDeckSelect ? pasteTargetDeckSelect.value : currentDeckId;
+
+            populateDeckSelectElement(deckSelector, currentDeckId);
+            populateDeckSelectElement(uploadTargetDeckSelect, previousUploadValue || currentDeckId);
+            populateDeckSelectElement(pasteTargetDeckSelect, previousPasteValue || currentDeckId);
+
+            updateCurrentDeckMeta();
+            renderDeckManagerList();
+            updateEditorTitle();
+        }
+
+        function updateCurrentDeckMeta() {
+            const deck = getCurrentDeck();
+            const meta = document.getElementById('currentDeckMeta');
+            if (!meta || !deck) return;
+
+            meta.innerHTML = `<strong>${deck.name}</strong> • ${deck.sentences.length} card(s) • ${deck.markedSentences.length} marcada(s) • ${decks.length} deck(s) salvo(s)`;
+        }
+
+        function updateEditorTitle() {
+            const title = document.getElementById('editorTitle');
+            const deck = getCurrentDeck();
+            if (title && deck) {
+                title.innerHTML = `<i class="fas fa-edit"></i> Editor do Deck: ${deck.name}`;
+            }
+        }
+
+        function renderDeckManagerList() {
+            const container = document.getElementById('deckManagerList');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            decks.forEach(deck => {
+                const item = document.createElement('div');
+                item.className = `deck-item ${deck.id === currentDeckId ? 'current' : ''}`;
+
+                const header = document.createElement('div');
+                header.className = 'deck-item-header';
+
+                const info = document.createElement('div');
+                info.innerHTML = `
+                    <div class="deck-item-name">${deck.name}${deck.id === currentDeckId ? ' • atual' : ''}</div>
+                    <div class="deck-item-stats">${deck.sentences.length} card(s) • ${deck.markedSentences.length} marcada(s)</div>
+                `;
+
+                header.appendChild(info);
+                item.appendChild(header);
+
+                const actions = document.createElement('div');
+                actions.className = 'deck-item-actions';
+
+                const selectBtn = document.createElement('button');
+                selectBtn.className = 'mini-btn primary-button';
+                selectBtn.textContent = 'Selecionar';
+                selectBtn.onclick = () => changeCurrentDeck(deck.id);
+
+                const renameBtn = document.createElement('button');
+                renameBtn.className = 'mini-btn warning-button';
+                renameBtn.textContent = 'Renomear';
+                renameBtn.onclick = () => renameDeck(deck.id);
+
+                const duplicateBtn = document.createElement('button');
+                duplicateBtn.className = 'mini-btn success-button';
+                duplicateBtn.textContent = 'Duplicar';
+                duplicateBtn.onclick = () => duplicateDeck(deck.id);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'mini-btn danger-button';
+                deleteBtn.textContent = 'Excluir';
+                deleteBtn.onclick = () => deleteDeck(deck.id);
+
+                actions.appendChild(selectBtn);
+                actions.appendChild(renameBtn);
+                actions.appendChild(duplicateBtn);
+                actions.appendChild(deleteBtn);
+
+                item.appendChild(actions);
+                container.appendChild(item);
+            });
+        }
+
+        function createDeckFromInput() {
+            const input = document.getElementById('newDeckNameInput');
+            const name = sanitizeDeckName(input.value || 'Novo Deck');
+
+            const newDeck = createDeckObject(name);
+            decks.push(newDeck);
+            currentDeckId = newDeck.id;
+            currentSentenceIndex = 0;
+            currentSpeechPhase = 'question';
+            setLoopToCurrentListFullRange();
+            refreshDeckSelectors();
+            updateLoopRange();
+            updateUI();
+            saveAppState();
+
+            input.value = '';
+            showNotification(`Deck "${newDeck.name}" criado!`, 'success');
+        }
+
+        function renameDeck(deckId) {
+            const deck = getDeckById(deckId);
+            if (!deck) return;
+
+            const newName = prompt('Novo nome do deck:', deck.name);
+            if (newName === null) return;
+
+            deck.name = sanitizeDeckName(newName);
+            touchDeck(deck);
+            refreshDeckSelectors();
+            updateUI();
+            saveAppState();
+            showNotification('Deck renomeado!', 'success');
+        }
+
+        function duplicateDeck(deckId) {
+            const deck = getDeckById(deckId);
+            if (!deck) return;
+
+            const copy = createDeckObject(`${deck.name} (cópia)`, deck.sentences, deck.markedSentences);
+            decks.push(copy);
+            currentDeckId = copy.id;
+            currentSentenceIndex = 0;
+            currentSpeechPhase = 'question';
+            setLoopToCurrentListFullRange();
+            refreshDeckSelectors();
+            updateLoopRange();
+            updateUI();
+            saveAppState();
+            showNotification('Deck duplicado!', 'success');
+        }
+
+        function deleteDeck(deckId) {
+            if (decks.length <= 1) {
+                showNotification('Você precisa manter pelo menos 1 deck.', 'info');
+                return;
+            }
+
+            const deck = getDeckById(deckId);
+            if (!deck) return;
+
+            const confirmed = confirm(`Excluir o deck "${deck.name}"?`);
+            if (!confirmed) return;
+
+            decks = decks.filter(d => d.id !== deckId);
+
+            if (currentDeckId === deckId) {
+                currentDeckId = decks[0].id;
+                currentSentenceIndex = 0;
+                currentSpeechPhase = 'question';
+            }
+
+            setLoopToCurrentListFullRange();
+            refreshDeckSelectors();
+            updateLoopRange();
+            updateUI();
+            saveAppState();
+            showNotification('Deck excluído!', 'success');
+        }
+
+        function changeCurrentDeck(deckId) {
+            if (!deckId || deckId === currentDeckId) {
+                refreshDeckSelectors();
+                return;
+            }
+
+            currentDeckId = deckId;
+            currentSentenceIndex = 0;
+            currentSpeechPhase = 'question';
+            setLoopToCurrentListFullRange();
+            refreshDeckSelectors();
+            updateLoopRange();
+            updateUI();
+            saveAppState();
+
+            if (document.getElementById('editorOverlay').classList.contains('active')) {
+                populateEditorTable();
+            }
+
+            if (isPlaying) {
+                const currentSentences = getCurrentSentences();
+                if (currentSentences.length === 0) {
+                    stopAutoPlay();
+                } else {
+                    restartPlaybackFromCurrentCard();
+                }
+            }
+        }
+
+        function toggleDeckManager() {
+            refreshDeckSelectors();
+            document.getElementById('deckManagerOverlay').classList.toggle('active');
+        }
+
         function loadVoices() {
             function setVoices() {
-                availableVoices = window.speechSynthesis.getVoices();
-                console.log("Vozes carregadas:", availableVoices.length);
-                availableVoices.forEach(v => {
-                    console.log(v.name + " | " + v.lang);
-                });
+                availableVoices = window.speechSynthesis.getVoices() || [];
+                populateVoiceSelectors();
+                console.log('Vozes carregadas:', availableVoices.length);
             }
 
             setVoices();
@@ -873,17 +1677,97 @@ body {
             }
         }
 
+        function populateVoiceSelectors() {
+            const questionSelect = document.getElementById('questionVoiceSelect');
+            const answerSelect = document.getElementById('answerVoiceSelect');
+            const info = document.getElementById('voicesLoadedInfo');
+
+            if (!questionSelect || !answerSelect) return;
+
+            const currentQuestion = selectedQuestionVoiceURI;
+            const currentAnswer = selectedAnswerVoiceURI;
+
+            questionSelect.innerHTML = '<option value="">Automático</option>';
+            answerSelect.innerHTML = '<option value="">Automático</option>';
+
+            const sortedVoices = [...availableVoices].sort((a, b) =>
+                `${a.lang} ${a.name}`.localeCompare(`${b.lang} ${b.name}`, 'pt-BR')
+            );
+
+            sortedVoices.forEach(voice => {
+                const optionValue = voice.voiceURI || voice.name;
+                const label = `${voice.name} (${voice.lang})${voice.default ? ' — padrão' : ''}`;
+
+                const optionQ = document.createElement('option');
+                optionQ.value = optionValue;
+                optionQ.textContent = label;
+                questionSelect.appendChild(optionQ);
+
+                const optionA = document.createElement('option');
+                optionA.value = optionValue;
+                optionA.textContent = label;
+                answerSelect.appendChild(optionA);
+            });
+
+            if ([...questionSelect.options].some(opt => opt.value === currentQuestion)) {
+                questionSelect.value = currentQuestion;
+            }
+
+            if ([...answerSelect.options].some(opt => opt.value === currentAnswer)) {
+                answerSelect.value = currentAnswer;
+            }
+
+            if (info) {
+                info.textContent = `${availableVozesText()}`;
+            }
+        }
+
+        function availableVozesText() {
+            return `${availableVoices.length} voz(es) detectada(s) no navegador/dispositivo`;
+        }
+
+        function getVoiceByURI(voiceURI) {
+            return availableVoices.find(v => (v.voiceURI || v.name) === voiceURI) || null;
+        }
+
+        function updateVoiceSelections() {
+            selectedQuestionVoiceURI = document.getElementById('questionVoiceSelect').value;
+            selectedAnswerVoiceURI = document.getElementById('answerVoiceSelect').value;
+            saveAppState();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
+        }
+
+        function updateQuestionRepeat() {
+            const input = document.getElementById('questionRepeatInput');
+            const display = document.getElementById('questionRepeatDisplay');
+
+            let value = parseInt(input.value, 10);
+            if (Number.isNaN(value) || value < 1) value = 1;
+            if (value > 10) value = 10;
+
+            input.value = value;
+            questionRepeatCount = value;
+            display.textContent = `Pergunta será falada ${value} ${value === 1 ? 'vez' : 'vezes'}`;
+            saveAppState();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
+        }
+
         function clearPlaybackTimers() {
             clearTimeout(playInterval);
             clearTimeout(restartTimeout);
             clearTimeout(answerDelayTimeout);
+            clearTimeout(questionRepeatTimeout);
+
             playInterval = null;
             restartTimeout = null;
             answerDelayTimeout = null;
-        }
-
-        function isSameSentence(a, b) {
-            return !!a && !!b && a.original === b.original && a.translation === b.translation;
+            questionRepeatTimeout = null;
         }
 
         function updatePlayPauseButton() {
@@ -896,19 +1780,19 @@ body {
         function setActiveTabButtonState() {
             const mainTab = document.getElementById('mainTab');
             const markedTab = document.getElementById('markedTab');
+            const pdfPromptTab = document.getElementById('pdfPromptTab');
 
-            if (currentTab === 'main') {
-                mainTab.classList.add('active');
-                markedTab.classList.remove('active');
-            } else {
-                mainTab.classList.remove('active');
-                markedTab.classList.add('active');
-            }
+            mainTab.classList.remove('active');
+            markedTab.classList.remove('active');
+            pdfPromptTab.classList.remove('active');
+
+            if (currentTab === 'main') mainTab.classList.add('active');
+            if (currentTab === 'marked') markedTab.classList.add('active');
+            if (currentTab === 'pdfPrompt') pdfPromptTab.classList.add('active');
         }
 
         function getActiveSelectedLanguage() {
-            const activeLanguageButton = document.querySelector('#language-selector button.active');
-            return activeLanguageButton ? activeLanguageButton.dataset.lang : 'pt-BR';
+            return selectedLanguageCode || 'pt-BR';
         }
 
         function detectLanguageCodeFromText(text) {
@@ -956,7 +1840,20 @@ body {
             return fallback || availableVoices[0] || null;
         }
 
-        function getSpeechSettingsForText(text) {
+        function getSpeechSettingsForText(text, phase = 'question') {
+            const manualVoiceURI = phase === 'question'
+                ? selectedQuestionVoiceURI
+                : selectedAnswerVoiceURI;
+
+            const manualVoice = manualVoiceURI ? getVoiceByURI(manualVoiceURI) : null;
+
+            if (manualVoice) {
+                return {
+                    langCode: manualVoice.lang,
+                    voice: manualVoice
+                };
+            }
+
             const selectedLang = getActiveSelectedLanguage();
             const detectedLang = detectLanguageCodeFromText(text);
             const langCode = detectedLang || selectedLang;
@@ -968,7 +1865,6 @@ body {
             };
         }
 
-        // Configurar seletor de idioma
         function setupLanguageSelector() {
             const selector = document.getElementById('language-selector');
             selector.innerHTML = '';
@@ -985,15 +1881,21 @@ body {
                 btn.textContent = `${lang.flag} ${lang.name}`;
                 btn.dataset.lang = lang.code;
                 btn.onclick = () => selectLanguage(lang.code, btn);
-                if (lang.code === 'pt-BR') btn.classList.add('active');
+                if (lang.code === selectedLanguageCode) btn.classList.add('active');
                 selector.appendChild(btn);
             });
+
+            if (!selector.querySelector('.active') && selector.firstChild) {
+                selector.firstChild.classList.add('active');
+                selectedLanguageCode = selector.firstChild.dataset.lang;
+            }
         }
 
         function selectLanguage(langCode, btn) {
+            selectedLanguageCode = langCode;
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            console.log('Idioma selecionado:', langCode);
+            saveAppState();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -1001,12 +1903,23 @@ body {
         }
 
         function switchTab(tab) {
+            if (tab === 'pdfPrompt') {
+                currentTab = 'pdfPrompt';
+                if (isPlaying) stopAutoPlay();
+                setActiveTabButtonState();
+                updateUI();
+                saveAppState();
+                return;
+            }
+
             currentTab = tab;
             currentSentenceIndex = 0;
             currentSpeechPhase = 'question';
             setActiveTabButtonState();
+            setLoopToCurrentListFullRange();
             updateLoopRange();
             updateUI();
+            saveAppState();
 
             const currentSentences = getCurrentSentences();
             if (isPlaying) {
@@ -1019,7 +1932,9 @@ body {
         }
 
         function getCurrentSentences() {
-            return currentTab === 'marked' ? markedSentences : sentences;
+            return currentTab === 'marked'
+                ? getDeckMarkedSentences()
+                : getDeckSentences();
         }
 
         function getEffectiveLoopBounds(totalLength) {
@@ -1044,6 +1959,7 @@ body {
         }
 
         function showUploadOptions() {
+            refreshDeckSelectors();
             document.getElementById('uploadOptionsOverlay').classList.add('active');
         }
 
@@ -1061,7 +1977,255 @@ body {
             alert('Funcionalidade Google Drive será implementada em breve');
         }
 
-        // Upload de arquivo
+        function normalizePdfText(text) {
+            return String(text || '')
+                .replace(/\u00A0/g, ' ')
+                .replace(/\r/g, '\n')
+                .replace(/[ \t]+\n/g, '\n')
+                .replace(/\n[ \t]+/g, '\n')
+                .replace(/[ \t]{2,}/g, ' ')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
+        function cleanCardSide(text) {
+            const markerCleanupRegex = new RegExp(`^\\s*(?:${FRONT_MARKER_PATTERN}|${BACK_MARKER_PATTERN})\\s*(?::|-)?\\s*`, 'gim');
+            const separatorCleanupRegex = new RegExp(`^\\s*${CARD_SEPARATOR_PATTERN}\\s*$`, 'gim');
+
+            return normalizePdfText(
+                String(text || '')
+                    .replace(markerCleanupRegex, '')
+                    .replace(separatorCleanupRegex, '')
+                    .replace(/^\s*===PAGE===\s*$/gim, '')
+            );
+        }
+
+        function parseFrontBackPairsFromText(text) {
+            const normalized = normalizePdfText(text);
+            if (!normalized) return [];
+
+            const pairRegex = new RegExp(
+                `(?:^|\\n)\\s*${FRONT_MARKER_PATTERN}\\s*(?::|-)?\\s*\\n?([\\s\\S]*?)\\n\\s*${BACK_MARKER_PATTERN}\\s*(?::|-)?\\s*\\n?([\\s\\S]*?)(?=(?:\\n\\s*${CARD_SEPARATOR_PATTERN}\\s*\\n)|(?:\\n\\s*${FRONT_MARKER_PATTERN}\\s*(?::|-)?(?:\\n|$))|$)`,
+                'gim'
+            );
+
+            const pairs = [];
+            let match;
+
+            while ((match = pairRegex.exec(normalized)) !== null) {
+                const original = cleanCardSide(match[1]);
+                const translation = cleanCardSide(match[2]);
+
+                if (original && translation) {
+                    pairs.push({ original, translation });
+                }
+            }
+
+            return dedupePairs(pairs);
+        }
+
+        function parseStructuredDeckText(text) {
+            const pairs = parseFrontBackPairsFromText(text);
+            return dedupePairs(pairs);
+        }
+
+        function detectStructuredPageType(text) {
+            const normalized = normalizePdfText(text);
+            if (/^\s*(FRENTE|FRONT|PERGUNTA|QUESTION)\b/i.test(normalized)) return 'front';
+            if (/^\s*(VERSO|BACK|RESPOSTA|ANSWER)\b/i.test(normalized)) return 'back';
+            return null;
+        }
+
+        function stripLeadingPageLabel(text) {
+            return normalizePdfText(text).replace(
+                /^\s*(?:FRENTE|FRONT|PERGUNTA|QUESTION|VERSO|BACK|RESPOSTA|ANSWER)(?:\s*#?\d+)?\s*(?::|-)?\s*/i,
+                ''
+            ).trim();
+        }
+
+        function parseAlternatingFrontBackPages(pages) {
+            const pairs = [];
+            let pendingFront = null;
+
+            for (const pageText of pages) {
+                const pageType = detectStructuredPageType(pageText);
+                const cleaned = stripLeadingPageLabel(pageText);
+
+                if (!pageType || !cleaned) continue;
+
+                if (pageType === 'front') {
+                    pendingFront = cleaned;
+                } else if (pageType === 'back' && pendingFront) {
+                    pairs.push({
+                        original: pendingFront,
+                        translation: cleaned
+                    });
+                    pendingFront = null;
+                }
+            }
+
+            return dedupePairs(pairs);
+        }
+
+        async function extractTextFromPdfPage(page) {
+            const textContent = await page.getTextContent();
+            const items = textContent.items || [];
+
+            let text = '';
+            let lastY = null;
+
+            for (const item of items) {
+                const str = item.str || '';
+                if (!str && !item.hasEOL) continue;
+
+                const y = item.transform ? item.transform[5] : lastY;
+
+                if (lastY !== null && y !== null && Math.abs(y - lastY) > 4) {
+                    text += '\n';
+                } else if (text && !text.endsWith('\n') && str) {
+                    text += ' ';
+                }
+
+                text += str;
+                lastY = y;
+
+                if (item.hasEOL) {
+                    text += '\n';
+                    lastY = null;
+                }
+            }
+
+            return normalizePdfText(text);
+        }
+
+        async function extractSentencesFromPDF(arrayBuffer) {
+            if (!window.pdfjsLib) {
+                throw new Error('Biblioteca de PDF não carregada.');
+            }
+
+            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+            const pages = [];
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const pageText = await extractTextFromPdfPage(page);
+                if (pageText) pages.push(pageText);
+            }
+
+            lastPdfRawText = pages.join('\n\n===PAGE===\n\n');
+            updateLastPdfRawTextArea();
+
+            if (!pages.length || !lastPdfRawText.trim()) {
+                throw new Error('O PDF não possui texto extraível. Se for um PDF escaneado/imagem, use OCR ou a aba "Prompt PDF".');
+            }
+
+            let pairs = [];
+
+            for (const pageText of pages) {
+                pairs.push(...parseFrontBackPairsFromText(pageText));
+            }
+
+            pairs = dedupePairs(pairs);
+
+            if (!pairs.length) {
+                pairs = parseFrontBackPairsFromText(lastPdfRawText);
+            }
+
+            if (!pairs.length) {
+                pairs = parseAlternatingFrontBackPages(pages);
+            }
+
+            pairs = dedupePairs(pairs);
+
+            if (!pairs.length) {
+                throw new Error('Não encontrei pares FRENTE/VERSO reconhecíveis no PDF. Abra a aba "Prompt PDF" para gerar um formato compatível.');
+            }
+
+            return pairs;
+        }
+
+        function parseCsvRows(text) {
+            const rows = text.split(/\r?\n/).filter(Boolean);
+            const extracted = [];
+
+            rows.forEach(row => {
+                const commaCount = (row.match(/,/g) || []).length;
+                const semicolonCount = (row.match(/;/g) || []).length;
+                const delimiter = semicolonCount > commaCount ? ';' : ',';
+                const cols = row.split(delimiter);
+
+                if (cols[0] && cols[1]) {
+                    extracted.push({
+                        original: String(cols[0]).trim(),
+                        translation: String(cols[1]).trim()
+                    });
+                }
+            });
+
+            return dedupePairs(extracted);
+        }
+
+        function importCardsToDeck(cards, targetDeckId, importMode = 'replace', sourceLabel = 'arquivo') {
+            ensureDecksExist();
+
+            const cleanCards = dedupePairs(cards);
+            if (!cleanCards.length) {
+                throw new Error('Nenhum card válido foi encontrado para importar.');
+            }
+
+            const deck = getDeckById(targetDeckId) || getCurrentDeck();
+            if (!deck) throw new Error('Deck de destino não encontrado.');
+
+            const beforeCount = deck.sentences.length;
+
+            if (importMode === 'append') {
+                deck.sentences = dedupePairs([...deck.sentences, ...cleanCards]);
+                deck.markedSentences = deck.markedSentences.filter(marked =>
+                    deck.sentences.some(sentence => isSameSentence(sentence, marked))
+                );
+            } else {
+                deck.sentences = cleanCards;
+                deck.markedSentences = [];
+            }
+
+            touchDeck(deck);
+
+            currentDeckId = deck.id;
+            currentTab = 'main';
+            currentSentenceIndex = 0;
+            currentSpeechPhase = 'question';
+            showTranslation = false;
+            setActiveTabButtonState();
+            setLoopToCurrentListFullRange();
+            refreshDeckSelectors();
+            updateLoopRange();
+            updateUI();
+            saveAppState();
+
+            const afterCount = deck.sentences.length;
+            const addedCount = Math.max(0, afterCount - beforeCount);
+
+            if (importMode === 'append') {
+                const ignoredDuplicates = Math.max(0, cleanCards.length - addedCount);
+                showNotification(
+                    `${addedCount} card(s) adicionados ao deck "${deck.name}" via ${sourceLabel}${ignoredDuplicates ? ` • ${ignoredDuplicates} duplicado(s) ignorado(s)` : ''}.`,
+                    'success'
+                );
+            } else {
+                showNotification(
+                    `Deck "${deck.name}" atualizado com ${afterCount} card(s) via ${sourceLabel}.`,
+                    'success'
+                );
+            }
+
+            return {
+                deck,
+                beforeCount,
+                afterCount,
+                addedCount
+            };
+        }
+
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1071,12 +2235,18 @@ body {
 
             const reader = new FileReader();
 
-            reader.onload = function(event) {
+            reader.onload = async function(event) {
                 try {
                     const data = event.target.result;
                     let extractedSentences = [];
+                    const fileName = file.name.toLowerCase();
+                    const targetDeckId = document.getElementById('uploadTargetDeckSelect').value || currentDeckId;
+                    const importMode = document.getElementById('uploadImportModeSelect').value || 'replace';
 
-                    if (file.name.endsWith('.xlsx')) {
+                    if (fileName.endsWith('.xlsx')) {
+                        lastPdfRawText = '';
+                        updateLastPdfRawTextArea();
+
                         const workbook = XLSX.read(data, { type: 'array' });
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -1089,48 +2259,36 @@ body {
                                 });
                             }
                         });
-                    } else if (file.name.endsWith('.csv')) {
-                        const text = new TextDecoder().decode(data);
-                        const rows = text.split('\n');
 
-                        rows.forEach(row => {
-                            const cols = row.split(',');
-                            if (cols[0] && cols[1]) {
-                                extractedSentences.push({
-                                    original: cols[0].trim(),
-                                    translation: cols[1].trim()
-                                });
-                            }
-                        });
-                    } else if (file.name.endsWith('.pdf')) {
-                        throw new Error('Importação de PDF ainda não está implementada.');
+                        importCardsToDeck(extractedSentences, targetDeckId, importMode, 'XLSX');
+                    } else if (fileName.endsWith('.csv')) {
+                        lastPdfRawText = '';
+                        updateLastPdfRawTextArea();
+
+                        const text = new TextDecoder().decode(data);
+                        extractedSentences = parseCsvRows(text);
+                        importCardsToDeck(extractedSentences, targetDeckId, importMode, 'CSV');
+                    } else if (fileName.endsWith('.pdf')) {
+                        extractedSentences = await extractSentencesFromPDF(data);
+                        importCardsToDeck(extractedSentences, targetDeckId, importMode, 'PDF');
                     } else {
                         throw new Error('Formato de arquivo não suportado.');
                     }
 
-                    sentences = extractedSentences;
-                    markedSentences = [];
-                    currentTab = 'main';
-                    currentSentenceIndex = 0;
-                    currentSpeechPhase = 'question';
-                    showTranslation = false;
-
-                    if (sentences.length > 0) {
-                        document.getElementById('loopStart').value = 0;
-                        document.getElementById('loopEnd').value = Math.max(0, sentences.length - 1);
-                    } else {
-                        document.getElementById('loopStart').value = 0;
-                        document.getElementById('loopEnd').value = 0;
-                    }
-
-                    setActiveTabButtonState();
-                    updateLoopRange();
-                    updateUI();
                     hideLoadingOverlay();
-                    showNotification(`${sentences.length} frases carregadas!`, 'success');
                 } catch (error) {
                     hideLoadingOverlay();
-                    showNotification('Erro ao processar arquivo: ' + error.message, 'error');
+
+                    if (file.name.toLowerCase().endsWith('.pdf')) {
+                        switchTab('pdfPrompt');
+                        if (lastPdfRawText && lastPdfRawText.trim()) {
+                            showNotification('PDF não reconhecido. A aba "Prompt PDF" foi aberta e o texto bruto ficou disponível para cópia.', 'error');
+                        } else {
+                            showNotification(error.message, 'error');
+                        }
+                    } else {
+                        showNotification('Erro ao processar arquivo: ' + error.message, 'error');
+                    }
                 } finally {
                     e.target.value = '';
                 }
@@ -1139,7 +2297,51 @@ body {
             reader.readAsArrayBuffer(file);
         });
 
+        function handleStructuredImportDraftChange() {
+            structuredImportDraft = document.getElementById('structuredImportTextarea').value || '';
+            saveAppState();
+        }
+
+        function clearStructuredImport() {
+            structuredImportDraft = '';
+            document.getElementById('structuredImportTextarea').value = '';
+            saveAppState();
+            showNotification('Texto colado foi limpo.', 'info');
+        }
+
+        function importStructuredTextToDeck() {
+            const textarea = document.getElementById('structuredImportTextarea');
+            const text = textarea.value.trim();
+            const targetDeckId = document.getElementById('pasteTargetDeckSelect').value || currentDeckId;
+            const importMode = document.getElementById('pasteImportModeSelect').value || 'replace';
+
+            if (!text) {
+                showNotification('Cole o texto estruturado antes de importar.', 'info');
+                return;
+            }
+
+            try {
+                const cards = parseStructuredDeckText(text);
+
+                if (!cards.length) {
+                    throw new Error('Não encontrei pares FRENTE/VERSO válidos no texto colado.');
+                }
+
+                importCardsToDeck(cards, targetDeckId, importMode, 'texto colado');
+                structuredImportDraft = '';
+                textarea.value = '';
+                saveAppState();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+
         function togglePlayPause() {
+            if (currentTab === 'pdfPrompt') {
+                showNotification('Volte para uma aba de estudo para reproduzir.', 'info');
+                return;
+            }
+
             if (isPlaying) {
                 stopAutoPlay();
             } else {
@@ -1165,7 +2367,7 @@ body {
             const sessionId = playbackSession;
             restartTimeout = setTimeout(() => {
                 if (!isPlaying || sessionId !== playbackSession) return;
-                playSentence(sessionId, 'question');
+                playSentence(sessionId, 'question', 1);
             }, 80);
         }
 
@@ -1191,7 +2393,7 @@ body {
             const sessionId = playbackSession;
             restartTimeout = setTimeout(() => {
                 if (!isPlaying || sessionId !== playbackSession) return;
-                playSentence(sessionId, 'question');
+                playSentence(sessionId, 'question', 1);
             }, 80);
         }
 
@@ -1220,12 +2422,12 @@ body {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = currentSpeed;
 
-            const speechSettings = getSpeechSettingsForText(text);
+            const speechSettings = getSpeechSettingsForText(text, phase);
             utterance.lang = speechSettings.langCode;
 
             if (speechSettings.voice) {
                 utterance.voice = speechSettings.voice;
-                console.log(`Usando voz: ${speechSettings.voice.name} para ${speechSettings.langCode}`);
+                console.log(`Usando voz: ${speechSettings.voice.name} para ${phase} (${speechSettings.langCode})`);
             }
 
             utterance.onend = () => {
@@ -1242,7 +2444,16 @@ body {
             window.speechSynthesis.speak(utterance);
         }
 
-        function playSentence(sessionId = playbackSession, phase = 'question') {
+        function scheduleQuestionRepeat(sessionId, nextRepeatIndex) {
+            clearTimeout(questionRepeatTimeout);
+
+            questionRepeatTimeout = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                playSentence(sessionId, 'question', nextRepeatIndex);
+            }, 300);
+        }
+
+        function playSentence(sessionId = playbackSession, phase = 'question', repeatIndex = 1) {
             const currentSentences = getCurrentSentences();
 
             if (!isPlaying || sessionId !== playbackSession || currentSentences.length === 0) {
@@ -1264,8 +2475,14 @@ body {
             speakText(textToSpeak, phase, sessionId, () => {
                 if (!isPlaying || sessionId !== playbackSession) return;
 
-                if (phase === 'question' && speakAnswerEnabled) {
-                    scheduleAnswerSpeech(sessionId);
+                if (phase === 'question') {
+                    if (repeatIndex < questionRepeatCount) {
+                        scheduleQuestionRepeat(sessionId, repeatIndex + 1);
+                    } else if (speakAnswerEnabled) {
+                        scheduleAnswerSpeech(sessionId);
+                    } else {
+                        scheduleNextSentence(sessionId);
+                    }
                 } else {
                     scheduleNextSentence(sessionId);
                 }
@@ -1279,7 +2496,7 @@ body {
 
             answerDelayTimeout = setTimeout(() => {
                 if (!isPlaying || sessionId !== playbackSession) return;
-                playSentence(sessionId, 'answer');
+                playSentence(sessionId, 'answer', 1);
             }, delay);
         }
 
@@ -1293,7 +2510,7 @@ body {
                 advanceToNextSentence();
                 currentSpeechPhase = 'question';
                 updateUI();
-                playSentence(sessionId, 'question');
+                playSentence(sessionId, 'question', 1);
             }, delay);
         }
 
@@ -1304,6 +2521,7 @@ body {
             currentSentenceIndex = (currentSentenceIndex + 1) % currentSentences.length;
             currentSpeechPhase = 'question';
             updateUI();
+            saveAppState();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -1317,6 +2535,7 @@ body {
             currentSentenceIndex = (currentSentenceIndex - 1 + currentSentences.length) % currentSentences.length;
             currentSpeechPhase = 'question';
             updateUI();
+            saveAppState();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -1326,22 +2545,27 @@ body {
         function toggleShowAnswer() {
             showTranslation = !showTranslation;
             updateUI();
+            saveAppState();
         }
 
         function toggleMarkSentence() {
             const currentSentences = getCurrentSentences();
-            if (currentSentences.length === 0) return;
+            const deck = getCurrentDeck();
+
+            if (currentSentences.length === 0 || !deck) return;
 
             const sentence = currentSentences[currentSentenceIndex];
-            const index = markedSentences.findIndex(s => isSameSentence(s, sentence));
+            const index = deck.markedSentences.findIndex(s => isSameSentence(s, sentence));
 
             if (index > -1) {
-                markedSentences.splice(index, 1);
+                deck.markedSentences.splice(index, 1);
                 showNotification('Frase desmarcada', 'info');
             } else {
-                markedSentences.push({ ...sentence });
+                deck.markedSentences.push({ ...sentence });
                 showNotification('Frase marcada', 'success');
             }
+
+            touchDeck(deck);
 
             if (currentSentenceIndex >= getCurrentSentences().length) {
                 currentSentenceIndex = Math.max(0, getCurrentSentences().length - 1);
@@ -1349,7 +2573,9 @@ body {
 
             currentSpeechPhase = 'question';
             updateLoopRange();
+            refreshDeckSelectors();
             updateUI();
+            saveAppState();
 
             if (isPlaying && currentTab === 'marked') {
                 const list = getCurrentSentences();
@@ -1381,6 +2607,7 @@ body {
                 currentSpeechPhase = 'question';
                 updateUI();
                 closeGoToSentence();
+                saveAppState();
 
                 if (isPlaying) {
                     restartPlaybackFromCurrentCard();
@@ -1392,6 +2619,8 @@ body {
 
         function toggleSettings() {
             document.getElementById('settingsOverlay').classList.toggle('active');
+            populateVoiceSelectors();
+            updateQuestionRepeat();
             updateLoopRange();
             updateAnswerPauseDisplay();
             updateIntervalDisplay();
@@ -1403,6 +2632,7 @@ body {
             document.getElementById('modeOutputBtn').style.backgroundColor = mode === 'output' ? '#3498db' : '#95a5a6';
             currentSpeechPhase = 'question';
             updateUI();
+            saveAppState();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -1415,6 +2645,7 @@ body {
             document.getElementById('speakAnswerOffBtn').style.backgroundColor = !enabled ? '#3498db' : '#95a5a6';
             currentSpeechPhase = 'question';
             updateUI();
+            saveAppState();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -1424,6 +2655,7 @@ body {
         function updateSpeed(event) {
             currentSpeed = parseFloat(event.target.value);
             document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+            saveAppState();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -1431,15 +2663,17 @@ body {
         }
 
         function updateAnswerPauseDisplay() {
-            const answerPause = parseFloat(document.getElementById('answerPauseSlider').value || '0');
-            const display = answerPause === 0 ? '⚡ Instantâneo' : `⏸️ ${answerPause}s`;
+            answerPauseSeconds = parseFloat(document.getElementById('answerPauseSlider').value || '0');
+            const display = answerPauseSeconds === 0 ? '⚡ Instantâneo' : `⏸️ ${answerPauseSeconds}s`;
             document.getElementById('answerPauseDisplay').textContent = display;
+            saveAppState();
         }
 
         function updateIntervalDisplay() {
-            const interval = parseFloat(document.getElementById('intervalSlider').value || '0');
-            const display = interval === 0 ? '🚀 Leitura Corrente' : `⏱️ ${interval}s`;
+            intervalSeconds = parseFloat(document.getElementById('intervalSlider').value || '0');
+            const display = intervalSeconds === 0 ? '🚀 Leitura Corrente' : `⏱️ ${intervalSeconds}s`;
             document.getElementById('intervalDisplay').textContent = display;
+            saveAppState();
         }
 
         function updateLoopRange() {
@@ -1453,6 +2687,7 @@ body {
                 loopStart = 0;
                 loopEnd = 0;
                 document.getElementById('loopRangeDisplay').textContent = 'Loop: 0 até 0';
+                saveAppState();
                 return;
             }
 
@@ -1463,12 +2698,16 @@ body {
             document.getElementById('loopStart').value = loopStart;
             document.getElementById('loopEnd').value = loopEnd;
             document.getElementById('loopRangeDisplay').textContent = `Loop: ${loopStart + 1} até ${loopEnd + 1}`;
+            saveAppState();
         }
 
         function saveSettings() {
+            updateQuestionRepeat();
             updateAnswerPauseDisplay();
             updateIntervalDisplay();
             updateLoopRange();
+            updateVoiceSelections();
+            saveAppState();
             showNotification('Configurações salvas!', 'success');
             toggleSettings();
 
@@ -1482,15 +2721,19 @@ body {
             overlay.classList.toggle('active');
 
             if (overlay.classList.contains('active')) {
+                updateEditorTitle();
                 populateEditorTable();
             }
         }
 
         function populateEditorTable() {
             const tbody = document.getElementById('editorTableBody');
+            const deck = getCurrentDeck();
             tbody.innerHTML = '';
 
-            sentences.forEach((sentence) => {
+            if (!deck) return;
+
+            deck.sentences.forEach((sentence) => {
                 const row = document.createElement('tr');
 
                 const originalCell = document.createElement('td');
@@ -1524,11 +2767,19 @@ body {
         }
 
         function addNewRow() {
-            sentences.push({ original: '', translation: '' });
+            const deck = getCurrentDeck();
+            if (!deck) return;
+            deck.sentences.push({ original: '', translation: '' });
+            touchDeck(deck);
             populateEditorTable();
+            refreshDeckSelectors();
+            saveAppState();
         }
 
         function saveChanges() {
+            const deck = getCurrentDeck();
+            if (!deck) return;
+
             const rows = document.querySelectorAll('#editorTableBody tr');
             const updatedSentences = [];
 
@@ -1538,17 +2789,15 @@ body {
                 const translation = inputs[1].value.trim();
 
                 if (original && translation) {
-                    updatedSentences.push({
-                        original,
-                        translation
-                    });
+                    updatedSentences.push({ original, translation });
                 }
             });
 
-            sentences = updatedSentences;
-            markedSentences = markedSentences.filter(marked =>
-                sentences.some(sentence => isSameSentence(sentence, marked))
+            deck.sentences = dedupePairs(updatedSentences);
+            deck.markedSentences = deck.markedSentences.filter(marked =>
+                deck.sentences.some(sentence => isSameSentence(sentence, marked))
             );
+            touchDeck(deck);
 
             if (currentSentenceIndex >= getCurrentSentences().length) {
                 currentSentenceIndex = Math.max(0, getCurrentSentences().length - 1);
@@ -1556,8 +2805,10 @@ body {
 
             currentSpeechPhase = 'question';
             updateLoopRange();
+            refreshDeckSelectors();
             updateUI();
             toggleEditor();
+            saveAppState();
             showNotification('Alterações salvas!', 'success');
 
             if (isPlaying) {
@@ -1571,22 +2822,41 @@ body {
         }
 
         function updateUI() {
-            document.getElementById('allSentencesCount').textContent = sentences.length;
-            document.getElementById('markedSentencesCount').textContent = markedSentences.length;
+            const deck = getCurrentDeck();
+            const deckSentences = deck ? deck.sentences : [];
+            const deckMarked = deck ? deck.markedSentences : [];
+
+            document.getElementById('allSentencesCount').textContent = deckSentences.length;
+            document.getElementById('markedSentencesCount').textContent = deckMarked.length;
+
+            const studyPanel = document.getElementById('studyPanel');
+            const pdfPromptPanel = document.getElementById('pdfPromptPanel');
+
+            const isPromptView = currentTab === 'pdfPrompt';
+            studyPanel.style.display = isPromptView ? 'none' : 'block';
+            pdfPromptPanel.style.display = isPromptView ? 'block' : 'none';
+
+            updateCurrentDeckMeta();
+
+            if (isPromptView) return;
 
             const currentSentences = getCurrentSentences();
+            const sentenceDisplayEl = document.getElementById('sentence-display');
             const sentenceTextEl = document.querySelector('.sentence-text');
             const translationTextEl = document.querySelector('.translation-text');
             const counterEl = document.getElementById('sentence-counter');
             const markBtn = document.getElementById('markSentenceButton');
             const answerBtn = document.getElementById('toggleAnswerButton');
 
+            sentenceDisplayEl.classList.remove('phase-question', 'phase-answer');
+
             answerBtn.innerHTML = showTranslation
                 ? '<i class="fas fa-eye-slash"></i> Ocultar Resposta'
                 : '<i class="fas fa-eye"></i> Mostrar Resposta';
 
             if (currentSentences.length === 0) {
-                sentenceTextEl.textContent = currentTab === 'marked' ? 'Nenhuma frase marcada' : 'Nenhuma frase carregada';
+                sentenceDisplayEl.classList.add('phase-question');
+                sentenceTextEl.textContent = currentTab === 'marked' ? 'Nenhuma frase marcada neste deck' : 'Nenhuma frase carregada neste deck';
                 translationTextEl.textContent = '';
                 translationTextEl.style.display = 'none';
                 counterEl.textContent = '0 / 0';
@@ -1609,20 +2879,28 @@ body {
             const frontText = currentMode === 'input' ? sentence.original : sentence.translation;
             const backText = currentMode === 'input' ? sentence.translation : sentence.original;
 
-            sentenceTextEl.textContent = frontText;
-
             const autoShowAnswerDuringPlayback =
                 isPlaying &&
                 speakAnswerEnabled &&
                 currentSpeechPhase === 'answer';
 
-            const shouldShowBack = showTranslation || autoShowAnswerDuringPlayback;
+            if (autoShowAnswerDuringPlayback) {
+                sentenceDisplayEl.classList.add('phase-answer');
+                sentenceTextEl.textContent = backText;
+                translationTextEl.textContent = '';
+                translationTextEl.style.display = 'none';
+            } else {
+                sentenceDisplayEl.classList.add('phase-question');
+                sentenceTextEl.textContent = frontText;
 
-            translationTextEl.textContent = shouldShowBack ? backText : '';
-            translationTextEl.style.display = shouldShowBack ? 'block' : 'none';
+                const shouldShowBackSmall = showTranslation;
+                translationTextEl.textContent = shouldShowBackSmall ? backText : '';
+                translationTextEl.style.display = shouldShowBackSmall ? 'block' : 'none';
+            }
+
             counterEl.textContent = `${currentSentenceIndex + 1} / ${currentSentences.length}`;
 
-            const isMarked = markedSentences.some(s => isSameSentence(s, sentence));
+            const isMarked = deckMarked.some(s => isSameSentence(s, sentence));
             markBtn.innerHTML = isMarked
                 ? '<i class="fas fa-bookmark"></i> Desmarcar'
                 : '<i class="fas fa-bookmark"></i> Marcar';
@@ -1646,12 +2924,128 @@ body {
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => notification.remove(), 500);
-            }, 3000);
+            }, 3200);
+        }
+
+        function getPdfPromptTemplate() {
+            return `Quero que você reorganize o conteúdo abaixo em cartões de estudo para um app que importa PDFs estruturados em FRENTE/VERSO.
+
+REGRAS OBRIGATÓRIAS:
+1. A saída deve ser apenas texto simples.
+2. Não use markdown.
+3. Não use comentários, observações ou explicações extras.
+4. Cada cartão deve ter exatamente este formato:
+
+FRENTE:
+[conteúdo da frente]
+
+VERSO:
+[conteúdo do verso]
+
+===CARD===
+
+5. Use FRENTE para pergunta, termo, frase, conceito ou trecho principal.
+6. Use VERSO para resposta, tradução, explicação, definição ou complemento.
+7. Não coloque nada antes do primeiro FRENTE.
+8. Não coloque nada depois do último VERSO.
+9. Não misture dois cartões no mesmo bloco.
+10. Preserve listas, exemplos e quebras de linha quando isso ajudar no estudo.
+11. Se houver idioma original e tradução, mantenha o original na FRENTE e a tradução no VERSO.
+12. A saída precisa ficar pronta para eu colar no app ou exportar como PDF texto selecionável.
+
+CONTEÚDO PARA FORMATAR:
+[cole aqui o texto bruto extraído do PDF]`;
+        }
+
+        function getPdfFormatExample() {
+            return `FRENTE:
+How are you?
+
+VERSO:
+Como você está?
+
+===CARD===
+
+FRENTE:
+What does "although" mean?
+
+VERSO:
+Significa "embora".
+
+===CARD===
+
+FRENTE:
+Explique o que é fotossíntese.
+
+VERSO:
+Processo pelo qual plantas convertem luz, água e dióxido de carbono em glicose e oxigênio.`;
+        }
+
+        function getCombinedPromptWithRawText() {
+            const rawText = lastPdfRawText && lastPdfRawText.trim()
+                ? lastPdfRawText
+                : '[Sem texto bruto disponível. Carregue um PDF primeiro.]';
+
+            return getPdfPromptTemplate().replace('[cole aqui o texto bruto extraído do PDF]', rawText);
+        }
+
+        function populatePdfPromptTab() {
+            const promptEl = document.getElementById('pdfPromptTextarea');
+            const exampleEl = document.getElementById('pdfFormatExampleTextarea');
+
+            if (promptEl) promptEl.value = getPdfPromptTemplate();
+            if (exampleEl) exampleEl.value = getPdfFormatExample();
+        }
+
+        function updateLastPdfRawTextArea() {
+            const area = document.getElementById('lastPdfRawTextArea');
+            if (!area) return;
+
+            area.value = lastPdfRawText && lastPdfRawText.trim()
+                ? lastPdfRawText
+                : 'O texto bruto extraído do último PDF aparecerá aqui.';
+            saveAppState();
+        }
+
+        async function copyTextToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showNotification('Texto copiado!', 'success');
+            } catch (error) {
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                showNotification('Texto copiado!', 'success');
+            }
+        }
+
+        function copyPdfPrompt() {
+            copyTextToClipboard(getPdfPromptTemplate());
+        }
+
+        function copyCombinedPromptWithRawText() {
+            copyTextToClipboard(getCombinedPromptWithRawText());
+        }
+
+        function copyPdfFormatExample() {
+            copyTextToClipboard(getPdfFormatExample());
+        }
+
+        function copyLastPdfRawText() {
+            if (!lastPdfRawText || !lastPdfRawText.trim()) {
+                showNotification('Ainda não há texto bruto de PDF para copiar.', 'info');
+                return;
+            }
+            copyTextToClipboard(lastPdfRawText);
         }
 
         document.addEventListener('click', (e) => {
             if (e.target.id === 'uploadOptionsOverlay') hideUploadOptions();
             if (e.target.id === 'settingsOverlay') toggleSettings();
+            if (e.target.id === 'deckManagerOverlay') toggleDeckManager();
             if (e.target.id === 'editorOverlay') toggleEditor();
             if (e.target.id === 'goToSentenceOverlay') closeGoToSentence();
         });
@@ -1659,6 +3053,17 @@ body {
         document.addEventListener('keypress', (e) => {
             if (e.target.id === 'sentenceNumberInput' && e.key === 'Enter') {
                 goToSentenceNumber();
+            }
+            if (e.target.id === 'newDeckNameInput' && e.key === 'Enter') {
+                createDeckFromInput();
+            }
+        });
+
+        window.addEventListener('beforeunload', saveAppState);
+        window.addEventListener('pagehide', saveAppState);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                saveAppState();
             }
         });
 
