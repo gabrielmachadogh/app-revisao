@@ -30,7 +30,6 @@
     --bg-a:#eef2ff;
     --bg-b:#f8fafc;
     --surface:rgba(255,255,255,.78);
-    --surface-strong:#ffffff;
     --text:#0f172a;
     --muted:#64748b;
     --border:rgba(148,163,184,.22);
@@ -45,13 +44,11 @@
     --neutral-2:#475569;
     --shadow:0 18px 48px rgba(15,23,42,.12);
     --shadow-soft:0 10px 24px rgba(15,23,42,.08);
-    --radius:20px;
-    --radius-md:16px;
-    --radius-sm:12px;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
+button,input,select,textarea{font:inherit}
 
 body{
     font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -67,8 +64,6 @@ body{
         linear-gradient(180deg, var(--bg-a), var(--bg-b));
     padding:18px;
 }
-
-button,input,select,textarea{font:inherit}
 
 #app-container{
     width:100%;
@@ -168,7 +163,7 @@ button,input,select,textarea{font:inherit}
     box-shadow:0 14px 32px rgba(99,102,241,.28);
 }
 
-/* Deck bar */
+/* Surface blocks */
 #deckBar,
 .helper-card,
 .overlay-content,
@@ -183,7 +178,7 @@ button,input,select,textarea{font:inherit}
 #deckBar{
     border-radius:18px;
     padding:14px;
-    margin-bottom:18px;
+    margin-bottom:12px;
 }
 
 .deck-bar-top{
@@ -225,6 +220,29 @@ button,input,select,textarea{font:inherit}
     line-height:1.45;
 }
 
+#sessionStatusBar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:16px;
+}
+
+.status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:7px 10px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.18);
+    background:rgba(255,255,255,.58);
+    color:#607086;
+    font-size:.78em;
+    font-weight:700;
+    line-height:1;
+    letter-spacing:.01em;
+    box-shadow:0 4px 10px rgba(15,23,42,.04);
+}
+
 /* Tabs */
 #tabsContainer{
     display:flex;
@@ -259,7 +277,7 @@ button,input,select,textarea{font:inherit}
 #studyPanel{display:block}
 #pdfPromptPanel{display:none}
 
-/* Main card */
+/* Card */
 #sentence-display{
     position:relative;
     border-radius:22px;
@@ -390,11 +408,6 @@ button,input,select,textarea{font:inherit}
     color:#fff;
     box-shadow:var(--shadow-soft);
     text-align:center;
-}
-
-.small-button{
-    padding:9px 12px;
-    font-size:.86em;
 }
 
 .primary-button{
@@ -716,6 +729,7 @@ button,input,select,textarea{font:inherit}
     width:fit-content;
     backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);
+    transition:opacity .35s ease;
 }
 
 .notification.show{opacity:1}
@@ -757,6 +771,7 @@ button,input,select,textarea{font:inherit}
     .nav-button{width:42px;height:42px}
     .action-button,.action-button-bottom{font-size:.84em}
     .side-indicator{top:10px;right:10px;font-size:.66em}
+    .status-pill{font-size:.72em}
 }
     </style>
 </head>
@@ -795,6 +810,12 @@ button,input,select,textarea{font:inherit}
                     </button>
                 </div>
                 <div id="currentDeckMeta"></div>
+            </div>
+
+            <div id="sessionStatusBar">
+                <span id="statusModePill" class="status-pill"><i class="fas fa-microphone"></i> Input</span>
+                <span id="statusShufflePill" class="status-pill"><i class="fas fa-list-ol"></i> Ordem normal</span>
+                <span id="statusLoopPill" class="status-pill"><i class="fas fa-repeat"></i> Loop 1–1</span>
             </div>
 
             <div id="tabsContainer">
@@ -902,7 +923,7 @@ button,input,select,textarea{font:inherit}
                 <div class="helper-card">
                     <h3><i class="fas fa-paste"></i> Colar texto estruturado da IA</h3>
                     <div class="helper-note">
-                        Cole aqui o texto que a IA devolveu no formato FRENTE/VERSO e escolha em qual deck ele deve entrar.
+                        Cole aqui o texto que a IA devolveu no formato FRENTE/VERSO, PERGUNTA/RESPOSTA ou pares simples como <strong>frente | verso</strong>.
                     </div>
 
                     <label for="pasteTargetDeckSelect" style="font-weight:700; margin-bottom:6px; display:block;">Deck de destino</label>
@@ -930,6 +951,7 @@ button,input,select,textarea{font:inherit}
     </div>
 
     <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" style="display:none;">
+    <input type="file" id="backupImportInput" accept=".json,application/json" style="display:none;">
 
     <div id="uploadOptionsOverlay" class="overlay">
         <div class="overlay-content">
@@ -959,7 +981,7 @@ button,input,select,textarea{font:inherit}
             
             <label>Modo de Reprodução:</label>
             <div style="margin-bottom:20px; display:flex; gap:8px;">
-                <button id="modeInputBtn" class="action-button-bottom primary-button" style="flex:1;" onclick="setMode('input')">
+                <button id="modeInputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('input')">
                     <i class="fas fa-microphone"></i> Input (A → B)
                 </button>
                 <button id="modeOutputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('output')">
@@ -972,9 +994,22 @@ button,input,select,textarea{font:inherit}
                 <button id="speakAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(true)">
                     <i class="fas fa-toggle-on"></i> Ligado
                 </button>
-                <button id="speakAnswerOffBtn" class="action-button-bottom primary-button" style="flex:1;" onclick="setSpeakAnswer(false)">
+                <button id="speakAnswerOffBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(false)">
                     <i class="fas fa-toggle-off"></i> Desligado
                 </button>
+            </div>
+
+            <label>Ordem da Sessão:</label>
+            <div style="margin-bottom:10px; display:flex; gap:8px;">
+                <button id="shuffleOffBtn" class="action-button-bottom" style="flex:1;" onclick="setShuffleMode(false)">
+                    <i class="fas fa-list-ol"></i> Ordem Normal
+                </button>
+                <button id="shuffleOnBtn" class="action-button-bottom" style="flex:1;" onclick="setShuffleMode(true)">
+                    <i class="fas fa-shuffle"></i> Embaralhar Sessão
+                </button>
+            </div>
+            <div id="shuffleModeDisplay" style="text-align:center; margin-bottom:15px;">
+                Ordem normal: segue a sequência do deck ou da aba atual
             </div>
 
             <label>Velocidade: <span id="speedDisplay">1.0x</span></label>
@@ -984,6 +1019,30 @@ button,input,select,textarea{font:inherit}
             <input type="number" id="questionRepeatInput" min="1" max="10" value="1" oninput="updateQuestionRepeat()">
             <div id="questionRepeatDisplay" style="text-align:center; margin-bottom:15px;">
                 Pergunta será falada 1 vez
+            </div>
+
+            <label>Repetir resposta:</label>
+            <input type="number" id="answerRepeatInput" min="1" max="10" value="1" oninput="updateAnswerRepeat()">
+            <div id="answerRepeatDisplay" style="text-align:center; margin-bottom:15px;">
+                Resposta será falada 1 vez
+            </div>
+
+            <label>Repetir pergunta após resposta:</label>
+            <div style="margin-bottom:10px; display:flex; gap:8px;">
+                <button id="repeatQuestionAfterAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setRepeatQuestionAfterAnswer(true)">
+                    <i class="fas fa-repeat"></i> Ligado
+                </button>
+                <button id="repeatQuestionAfterAnswerOffBtn" class="action-button-bottom" style="flex:1;" onclick="setRepeatQuestionAfterAnswer(false)">
+                    <i class="fas fa-ban"></i> Desligado
+                </button>
+            </div>
+            <div id="repeatQuestionAfterAnswerDisplay" style="text-align:center; margin-bottom:15px;">
+                Pergunta não volta após a resposta
+            </div>
+
+            <div style="margin: 0 0 18px; padding: 12px 14px; border-radius: 14px; background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.12); color: #475569; font-size: .92em;">
+                <strong style="color:#334155;">Fluxo atual:</strong>
+                <span id="flowPreview">Pergunta x1 → Próxima</span>
             </div>
 
             <label>Pausa entre pergunta e resposta: <span id="answerPauseDisplay">⚡ Instantâneo</span></label>
@@ -1032,6 +1091,11 @@ button,input,select,textarea{font:inherit}
             <button id="save-settings-button" class="action-button-bottom success-button" style="width:100%;" onclick="saveSettings()">
                 <i class="fas fa-save"></i> Salvar Configurações
             </button>
+
+            <div style="margin-top:14px; padding:12px 14px; border-radius:14px; background:rgba(15,23,42,.03); border:1px solid rgba(148,163,184,.15); color:#64748b; font-size:.84em; line-height:1.6;">
+                <strong style="color:#334155;">Atalhos:</strong><br>
+                Espaço = play/pause • ← = anterior • → = próxima • A = resposta • M = marcar • G = ir à frase • S = configurações • E = editor • T = alternar abas • X = shuffle • Esc = fechar janelas
+            </div>
         </div>
     </div>
 
@@ -1046,6 +1110,30 @@ button,input,select,textarea{font:inherit}
             </button>
 
             <div id="deckManagerList"></div>
+
+            <div class="helper-card" style="margin-top:15px;">
+                <h3><i class="fas fa-shield-heart"></i> Backup & Exportação</h3>
+                <div class="helper-note">
+                    Mantenha seus decks seguros e exporte o deck atual em formatos simples para guardar ou reaproveitar.
+                </div>
+                <div class="helper-actions">
+                    <button class="action-button-bottom primary-button" onclick="exportAllDecksBackup()">
+                        <i class="fas fa-download"></i> Backup Completo
+                    </button>
+                    <button class="action-button-bottom success-button" onclick="triggerImportBackup()">
+                        <i class="fas fa-upload"></i> Restaurar Backup
+                    </button>
+                    <button class="action-button-bottom" onclick="exportCurrentDeckAsStructuredTxt()">
+                        <i class="fas fa-file-lines"></i> Deck Atual .txt
+                    </button>
+                    <button class="action-button-bottom" onclick="exportCurrentDeckAsCsv()">
+                        <i class="fas fa-file-csv"></i> Deck Atual .csv
+                    </button>
+                    <button class="action-button-bottom" onclick="exportCurrentDeckAsXlsx()">
+                        <i class="fas fa-file-excel"></i> Deck Atual .xlsx
+                    </button>
+                </div>
+            </div>
 
             <div class="editor-controls">
                 <button class="action-button-bottom danger-button" onclick="toggleDeckManager()">
@@ -1110,7 +1198,7 @@ button,input,select,textarea{font:inherit}
     </div>
 
     <script>
-        const STORAGE_KEY = 'revisaStateV6';
+        const STORAGE_KEY = 'revisaStateV9';
         const FRONT_MARKER_PATTERN = '(?:FRENTE|FRONT|PERGUNTA|QUESTION)(?:\\s*#?\\d+)?';
         const BACK_MARKER_PATTERN = '(?:VERSO|BACK|RESPOSTA|ANSWER)(?:\\s*#?\\d+)?';
         const CARD_SEPARATOR_PATTERN = '(?:===+\\s*(?:CARD|CARTAO)?\\s*===+|---+|___+|\\*\\*\\*+)';
@@ -1135,6 +1223,9 @@ button,input,select,textarea{font:inherit}
         let speakAnswerEnabled = false;
         let currentSpeechPhase = 'question';
         let questionRepeatCount = 1;
+        let answerRepeatCount = 1;
+        let repeatQuestionAfterAnswer = false;
+        let shuffleModeEnabled = false;
         let answerPauseSeconds = 0;
         let intervalSeconds = 0;
 
@@ -1146,6 +1237,10 @@ button,input,select,textarea{font:inherit}
         let suppressAutoSave = false;
         let lastPdfRawText = '';
         let structuredImportDraft = '';
+
+        let shuffleOrder = [];
+        let shufflePosition = 0;
+        let shuffleContextKey = '';
 
         function configurePdfJs() {
             if (window.pdfjsLib) {
@@ -1160,6 +1255,16 @@ button,input,select,textarea{font:inherit}
         function sanitizeDeckName(name) {
             const cleaned = String(name || '').trim().replace(/\s+/g, ' ');
             return cleaned ? cleaned.slice(0, 80) : 'Novo Deck';
+        }
+
+        function slugifyFileName(name) {
+            return sanitizeDeckName(name)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .toLowerCase() || 'deck';
         }
 
         function clampNumber(value, min, max, fallback) {
@@ -1305,7 +1410,8 @@ button,input,select,textarea{font:inherit}
 
         function syncStateFromInputsForPersistence() {
             const speedSlider = document.getElementById('speedSlider');
-            const repeatInput = document.getElementById('questionRepeatInput');
+            const questionRepeatInput = document.getElementById('questionRepeatInput');
+            const answerRepeatInput = document.getElementById('answerRepeatInput');
             const answerPauseSlider = document.getElementById('answerPauseSlider');
             const intervalSlider = document.getElementById('intervalSlider');
             const loopStartInput = document.getElementById('loopStart');
@@ -1315,7 +1421,8 @@ button,input,select,textarea{font:inherit}
             const structuredTextarea = document.getElementById('structuredImportTextarea');
 
             if (speedSlider) currentSpeed = clampNumber(speedSlider.value, 0.5, 2.0, currentSpeed);
-            if (repeatInput) questionRepeatCount = clampInt(repeatInput.value, 1, 10, questionRepeatCount);
+            if (questionRepeatInput) questionRepeatCount = clampInt(questionRepeatInput.value, 1, 10, questionRepeatCount);
+            if (answerRepeatInput) answerRepeatCount = clampInt(answerRepeatInput.value, 1, 10, answerRepeatCount);
             if (answerPauseSlider) answerPauseSeconds = clampNumber(answerPauseSlider.value, 0, 10, answerPauseSeconds);
             if (intervalSlider) intervalSeconds = clampNumber(intervalSlider.value, 0, 10, intervalSeconds);
             if (loopStartInput) loopStart = clampInt(loopStartInput.value, 0, 999999, loopStart);
@@ -1325,6 +1432,42 @@ button,input,select,textarea{font:inherit}
             if (structuredTextarea) structuredImportDraft = structuredTextarea.value || '';
         }
 
+        function getSerializableSettings() {
+            return {
+                currentMode,
+                currentSpeed,
+                loopStart,
+                loopEnd,
+                speakAnswerEnabled,
+                questionRepeatCount,
+                answerRepeatCount,
+                repeatQuestionAfterAnswer,
+                shuffleModeEnabled,
+                answerPauseSeconds,
+                intervalSeconds,
+                selectedQuestionVoiceURI,
+                selectedAnswerVoiceURI,
+                selectedLanguageCode
+            };
+        }
+
+        function applySettingsObject(settings = {}) {
+            currentMode = ['input', 'output'].includes(settings.currentMode) ? settings.currentMode : currentMode;
+            currentSpeed = clampNumber(settings.currentSpeed, 0.5, 2.0, currentSpeed);
+            loopStart = clampInt(settings.loopStart, 0, 999999, loopStart);
+            loopEnd = clampInt(settings.loopEnd, 0, 999999, loopEnd);
+            speakAnswerEnabled = typeof settings.speakAnswerEnabled === 'boolean' ? settings.speakAnswerEnabled : speakAnswerEnabled;
+            questionRepeatCount = clampInt(settings.questionRepeatCount, 1, 10, questionRepeatCount);
+            answerRepeatCount = clampInt(settings.answerRepeatCount, 1, 10, answerRepeatCount);
+            repeatQuestionAfterAnswer = typeof settings.repeatQuestionAfterAnswer === 'boolean' ? settings.repeatQuestionAfterAnswer : repeatQuestionAfterAnswer;
+            shuffleModeEnabled = typeof settings.shuffleModeEnabled === 'boolean' ? settings.shuffleModeEnabled : shuffleModeEnabled;
+            answerPauseSeconds = clampNumber(settings.answerPauseSeconds, 0, 10, answerPauseSeconds);
+            intervalSeconds = clampNumber(settings.intervalSeconds, 0, 10, intervalSeconds);
+            selectedQuestionVoiceURI = typeof settings.selectedQuestionVoiceURI === 'string' ? settings.selectedQuestionVoiceURI : selectedQuestionVoiceURI;
+            selectedAnswerVoiceURI = typeof settings.selectedAnswerVoiceURI === 'string' ? settings.selectedAnswerVoiceURI : selectedAnswerVoiceURI;
+            selectedLanguageCode = typeof settings.selectedLanguageCode === 'string' ? settings.selectedLanguageCode : selectedLanguageCode;
+        }
+
         function saveAppState() {
             if (suppressAutoSave) return;
 
@@ -1332,20 +1475,8 @@ button,input,select,textarea{font:inherit}
                 syncStateFromInputsForPersistence();
 
                 const state = {
-                    version: 6,
-                    settings: {
-                        currentMode,
-                        currentSpeed,
-                        loopStart,
-                        loopEnd,
-                        speakAnswerEnabled,
-                        questionRepeatCount,
-                        answerPauseSeconds,
-                        intervalSeconds,
-                        selectedQuestionVoiceURI,
-                        selectedAnswerVoiceURI,
-                        selectedLanguageCode
-                    },
+                    version: 9,
+                    settings: getSerializableSettings(),
                     ui: {
                         currentTab,
                         currentSentenceIndex,
@@ -1373,17 +1504,7 @@ button,input,select,textarea{font:inherit}
                 const state = JSON.parse(raw);
 
                 if (state.settings) {
-                    currentMode = ['input', 'output'].includes(state.settings.currentMode) ? state.settings.currentMode : 'input';
-                    currentSpeed = clampNumber(state.settings.currentSpeed, 0.5, 2.0, 1.0);
-                    loopStart = clampInt(state.settings.loopStart, 0, 999999, 0);
-                    loopEnd = clampInt(state.settings.loopEnd, 0, 999999, 0);
-                    speakAnswerEnabled = !!state.settings.speakAnswerEnabled;
-                    questionRepeatCount = clampInt(state.settings.questionRepeatCount, 1, 10, 1);
-                    answerPauseSeconds = clampNumber(state.settings.answerPauseSeconds, 0, 10, 0);
-                    intervalSeconds = clampNumber(state.settings.intervalSeconds, 0, 10, 0);
-                    selectedQuestionVoiceURI = typeof state.settings.selectedQuestionVoiceURI === 'string' ? state.settings.selectedQuestionVoiceURI : '';
-                    selectedAnswerVoiceURI = typeof state.settings.selectedAnswerVoiceURI === 'string' ? state.settings.selectedAnswerVoiceURI : '';
-                    selectedLanguageCode = typeof state.settings.selectedLanguageCode === 'string' ? state.settings.selectedLanguageCode : 'pt-BR';
+                    applySettingsObject(state.settings);
                 }
 
                 if (state.ui) {
@@ -1407,6 +1528,124 @@ button,input,select,textarea{font:inherit}
             }
         }
 
+        function renderModeButtons() {
+            document.getElementById('modeInputBtn').style.background = currentMode === 'input'
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+            document.getElementById('modeOutputBtn').style.background = currentMode === 'output'
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+        }
+
+        function renderSpeakAnswerButtons() {
+            document.getElementById('speakAnswerOnBtn').style.background = speakAnswerEnabled
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+            document.getElementById('speakAnswerOffBtn').style.background = !speakAnswerEnabled
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+        }
+
+        function renderQuestionRepeatDisplay() {
+            const display = document.getElementById('questionRepeatDisplay');
+            if (display) {
+                display.textContent = `Pergunta será falada ${questionRepeatCount} ${questionRepeatCount === 1 ? 'vez' : 'vezes'}`;
+            }
+        }
+
+        function renderAnswerRepeatDisplay() {
+            const display = document.getElementById('answerRepeatDisplay');
+            if (display) {
+                display.textContent = `Resposta será falada ${answerRepeatCount} ${answerRepeatCount === 1 ? 'vez' : 'vezes'}`;
+            }
+        }
+
+        function renderRepeatQuestionAfterAnswerUI() {
+            const onBtn = document.getElementById('repeatQuestionAfterAnswerOnBtn');
+            const offBtn = document.getElementById('repeatQuestionAfterAnswerOffBtn');
+            const display = document.getElementById('repeatQuestionAfterAnswerDisplay');
+
+            if (onBtn) onBtn.style.background = repeatQuestionAfterAnswer
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+
+            if (offBtn) offBtn.style.background = !repeatQuestionAfterAnswer
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+
+            if (display) {
+                display.textContent = repeatQuestionAfterAnswer
+                    ? 'Pergunta volta 1 vez após a resposta'
+                    : 'Pergunta não volta após a resposta';
+            }
+        }
+
+        function renderShuffleUI() {
+            const onBtn = document.getElementById('shuffleOnBtn');
+            const offBtn = document.getElementById('shuffleOffBtn');
+            const display = document.getElementById('shuffleModeDisplay');
+
+            if (onBtn) onBtn.style.background = shuffleModeEnabled
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+
+            if (offBtn) offBtn.style.background = !shuffleModeEnabled
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+
+            if (display) {
+                display.textContent = shuffleModeEnabled
+                    ? 'Embaralhar sessão: respeita a aba, o loop e evita repetir a mesma frase ao fechar o ciclo'
+                    : 'Ordem normal: segue a sequência do deck ou da aba atual';
+            }
+        }
+
+        function refreshFlowPreview() {
+            const flowPreview = document.getElementById('flowPreview');
+            if (!flowPreview) return;
+
+            const parts = [`Pergunta x${questionRepeatCount}`];
+
+            if (speakAnswerEnabled) {
+                parts.push(`Resposta x${answerRepeatCount}`);
+                if (repeatQuestionAfterAnswer) {
+                    parts.push('Pergunta x1');
+                }
+            }
+
+            parts.push('Próxima');
+            flowPreview.textContent = parts.join(' → ') + (shuffleModeEnabled ? ' • Embaralhar sessão' : ' • Ordem normal');
+        }
+
+        function getCurrentLoopLabel() {
+            const currentSentences = currentTab === 'marked' ? getDeckMarkedSentences() : getDeckSentences();
+            if (!currentSentences.length) return 'Loop 0–0';
+            const bounds = getEffectiveLoopBounds(currentSentences.length);
+            return `Loop ${bounds.start + 1}–${bounds.end + 1}`;
+        }
+
+        function updateSessionStatusBar() {
+            const modePill = document.getElementById('statusModePill');
+            const shufflePill = document.getElementById('statusShufflePill');
+            const loopPill = document.getElementById('statusLoopPill');
+
+            if (modePill) {
+                modePill.innerHTML = currentMode === 'input'
+                    ? '<i class="fas fa-microphone"></i> Input'
+                    : '<i class="fas fa-volume-up"></i> Output';
+            }
+
+            if (shufflePill) {
+                shufflePill.innerHTML = shuffleModeEnabled
+                    ? '<i class="fas fa-shuffle"></i> Shuffle ligado'
+                    : '<i class="fas fa-list-ol"></i> Ordem normal';
+            }
+
+            if (loopPill) {
+                loopPill.innerHTML = `<i class="fas fa-repeat"></i> ${getCurrentLoopLabel()}`;
+            }
+        }
+
         function init() {
             suppressAutoSave = true;
             configurePdfJs();
@@ -1421,20 +1660,30 @@ button,input,select,textarea{font:inherit}
             document.getElementById('speedSlider').value = currentSpeed;
             document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
             document.getElementById('questionRepeatInput').value = questionRepeatCount;
+            document.getElementById('answerRepeatInput').value = answerRepeatCount;
             document.getElementById('answerPauseSlider').value = answerPauseSeconds;
             document.getElementById('intervalSlider').value = intervalSeconds;
             document.getElementById('loopStart').value = loopStart;
             document.getElementById('loopEnd').value = loopEnd;
             document.getElementById('structuredImportTextarea').value = structuredImportDraft || '';
 
+            renderQuestionRepeatDisplay();
+            renderAnswerRepeatDisplay();
+            renderRepeatQuestionAfterAnswerUI();
+            renderShuffleUI();
+            refreshFlowPreview();
+            updateAnswerPauseDisplay(false);
+            updateIntervalDisplay(false);
+
             setMode(currentMode);
             setSpeakAnswer(speakAnswerEnabled);
-            updateQuestionRepeat();
-            updateAnswerPauseDisplay();
-            updateIntervalDisplay();
+            setRepeatQuestionAfterAnswer(repeatQuestionAfterAnswer, false);
+            setShuffleMode(shuffleModeEnabled, false, false);
+
             setActiveTabButtonState();
             updatePlayPauseButton();
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
 
             suppressAutoSave = false;
@@ -1473,6 +1722,7 @@ button,input,select,textarea{font:inherit}
             populateDeckSelectElement(pasteTargetDeckSelect, previousPasteValue || currentDeckId);
 
             updateCurrentDeckMeta();
+            updateSessionStatusBar();
             renderDeckManagerList();
             updateEditorTitle();
         }
@@ -1558,8 +1808,10 @@ button,input,select,textarea{font:inherit}
             currentSentenceIndex = 0;
             currentSpeechPhase = 'question';
             setLoopToCurrentListFullRange();
+            if (shuffleModeEnabled) rebuildShuffleOrder({ keepCurrentAtStart: true });
             refreshDeckSelectors();
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -1577,6 +1829,7 @@ button,input,select,textarea{font:inherit}
             deck.name = sanitizeDeckName(newName);
             touchDeck(deck);
             refreshDeckSelectors();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
             showNotification('Deck renomeado!', 'success');
@@ -1592,8 +1845,10 @@ button,input,select,textarea{font:inherit}
             currentSentenceIndex = 0;
             currentSpeechPhase = 'question';
             setLoopToCurrentListFullRange();
+            if (shuffleModeEnabled) rebuildShuffleOrder({ keepCurrentAtStart: true });
             refreshDeckSelectors();
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
             showNotification('Deck duplicado!', 'success');
@@ -1620,8 +1875,10 @@ button,input,select,textarea{font:inherit}
             }
 
             setLoopToCurrentListFullRange();
+            if (shuffleModeEnabled) rebuildShuffleOrder({ keepCurrentAtStart: true });
             refreshDeckSelectors();
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
             showNotification('Deck excluído!', 'success');
@@ -1637,8 +1894,10 @@ button,input,select,textarea{font:inherit}
             currentSentenceIndex = 0;
             currentSpeechPhase = 'question';
             setLoopToCurrentListFullRange();
+            if (shuffleModeEnabled) rebuildShuffleOrder({ keepCurrentAtStart: true });
             refreshDeckSelectors();
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -1665,7 +1924,6 @@ button,input,select,textarea{font:inherit}
             function setVoices() {
                 availableVoices = window.speechSynthesis.getVoices() || [];
                 populateVoiceSelectors();
-                console.log('Vozes carregadas:', availableVoices.length);
             }
 
             setVoices();
@@ -1724,30 +1982,217 @@ button,input,select,textarea{font:inherit}
             return availableVoices.find(v => (v.voiceURI || v.name) === voiceURI) || null;
         }
 
-        function updateVoiceSelections() {
+        function updateVoiceSelections(shouldRestartPlayback = true) {
             selectedQuestionVoiceURI = document.getElementById('questionVoiceSelect').value;
             selectedAnswerVoiceURI = document.getElementById('answerVoiceSelect').value;
             saveAppState();
 
-            if (isPlaying) {
+            if (shouldRestartPlayback && isPlaying) {
                 restartPlaybackFromCurrentCard();
             }
         }
 
-        function updateQuestionRepeat() {
+        function updateQuestionRepeat(shouldRestartPlayback = true) {
             const input = document.getElementById('questionRepeatInput');
-            const display = document.getElementById('questionRepeatDisplay');
-
             let value = parseInt(input.value, 10);
+
             if (Number.isNaN(value) || value < 1) value = 1;
             if (value > 10) value = 10;
 
             input.value = value;
             questionRepeatCount = value;
-            display.textContent = `Pergunta será falada ${value} ${value === 1 ? 'vez' : 'vezes'}`;
+            renderQuestionRepeatDisplay();
+            refreshFlowPreview();
             saveAppState();
 
-            if (isPlaying) {
+            if (shouldRestartPlayback && isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
+        }
+
+        function updateAnswerRepeat(shouldRestartPlayback = true) {
+            const input = document.getElementById('answerRepeatInput');
+            let value = parseInt(input.value, 10);
+
+            if (Number.isNaN(value) || value < 1) value = 1;
+            if (value > 10) value = 10;
+
+            input.value = value;
+            answerRepeatCount = value;
+            renderAnswerRepeatDisplay();
+            refreshFlowPreview();
+            saveAppState();
+
+            if (shouldRestartPlayback && isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
+        }
+
+        function setRepeatQuestionAfterAnswer(enabled, shouldRestartPlayback = true) {
+            repeatQuestionAfterAnswer = !!enabled;
+            renderRepeatQuestionAfterAnswerUI();
+            refreshFlowPreview();
+            saveAppState();
+
+            if (shouldRestartPlayback && isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function clearShuffleSession() {
+            shuffleOrder = [];
+            shufflePosition = 0;
+            shuffleContextKey = '';
+        }
+
+        function getPlayableIndices() {
+            const currentSentences = getCurrentSentences();
+            const total = currentSentences.length;
+            if (!total) return [];
+
+            const bounds = getEffectiveLoopBounds(total);
+            const indices = [];
+            for (let i = bounds.start; i <= bounds.end; i++) {
+                indices.push(i);
+            }
+            return indices;
+        }
+
+        function getShuffleContextKey() {
+            const currentSentences = getCurrentSentences();
+            const total = currentSentences.length;
+            const bounds = getEffectiveLoopBounds(total);
+            return `${currentDeckId}|${currentTab}|${total}|${bounds.start}|${bounds.end}`;
+        }
+
+        function rebuildShuffleOrder({ keepCurrentAtStart = false, avoidCurrentAsFirst = false } = {}) {
+            const playable = getPlayableIndices();
+            shuffleContextKey = getShuffleContextKey();
+
+            if (!playable.length) {
+                clearShuffleSession();
+                return;
+            }
+
+            const currentPlayable = playable.includes(currentSentenceIndex)
+                ? currentSentenceIndex
+                : playable[0];
+
+            let order = shuffleArray([...playable]);
+
+            if (keepCurrentAtStart) {
+                order = [currentPlayable, ...order.filter(i => i !== currentPlayable)];
+                shufflePosition = 0;
+                currentSentenceIndex = currentPlayable;
+            } else {
+                if (avoidCurrentAsFirst && order.length > 1 && order[0] === currentPlayable) {
+                    [order[0], order[1]] = [order[1], order[0]];
+                }
+
+                const foundPos = order.indexOf(currentSentenceIndex);
+                if (foundPos >= 0) {
+                    shufflePosition = foundPos;
+                } else {
+                    shufflePosition = 0;
+                    currentSentenceIndex = order[0];
+                }
+            }
+
+            shuffleOrder = order;
+        }
+
+        function ensureShuffleSession(currentShouldBeFirst = false) {
+            if (!shuffleModeEnabled) return;
+
+            const playable = getPlayableIndices();
+            const ctx = getShuffleContextKey();
+
+            const valid =
+                playable.length > 0 &&
+                shuffleOrder.length === playable.length &&
+                ctx === shuffleContextKey &&
+                shuffleOrder.every(index => playable.includes(index));
+
+            if (!valid) {
+                rebuildShuffleOrder({ keepCurrentAtStart: currentShouldBeFirst });
+                return;
+            }
+
+            const pos = shuffleOrder.indexOf(currentSentenceIndex);
+            if (pos === -1) {
+                rebuildShuffleOrder({ keepCurrentAtStart: currentShouldBeFirst });
+            } else {
+                shufflePosition = pos;
+            }
+        }
+
+        function goToNextShuffled() {
+            ensureShuffleSession(false);
+            if (!shuffleOrder.length) return;
+
+            const previousCurrent = currentSentenceIndex;
+
+            if (shufflePosition < shuffleOrder.length - 1) {
+                shufflePosition++;
+                currentSentenceIndex = shuffleOrder[shufflePosition];
+                return;
+            }
+
+            rebuildShuffleOrder({ keepCurrentAtStart: false, avoidCurrentAsFirst: true });
+            if (!shuffleOrder.length) return;
+
+            shufflePosition = 0;
+            currentSentenceIndex = shuffleOrder[0];
+
+            if (shuffleOrder.length > 1 && currentSentenceIndex === previousCurrent) {
+                shufflePosition = 1;
+                currentSentenceIndex = shuffleOrder[1];
+            }
+        }
+
+        function goToPreviousShuffled() {
+            ensureShuffleSession(false);
+            if (!shuffleOrder.length) return;
+
+            if (shufflePosition > 0) {
+                shufflePosition--;
+            } else {
+                shufflePosition = shuffleOrder.length - 1;
+            }
+
+            currentSentenceIndex = shuffleOrder[shufflePosition];
+        }
+
+        function setShuffleMode(enabled, shouldRestartPlayback = true, shouldToast = false) {
+            shuffleModeEnabled = !!enabled;
+            renderShuffleUI();
+            refreshFlowPreview();
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
+            } else {
+                clearShuffleSession();
+            }
+
+            updateSessionStatusBar();
+            saveAppState();
+
+            if (shouldToast) {
+                showNotification(
+                    shuffleModeEnabled ? 'Embaralhar sessão ativado' : 'Ordem normal ativada',
+                    'info'
+                );
+            }
+
+            if (shouldRestartPlayback && isPlaying) {
                 restartPlaybackFromCurrentCard();
             }
         }
@@ -1901,6 +2346,7 @@ button,input,select,textarea{font:inherit}
                 currentTab = 'pdfPrompt';
                 if (isPlaying) stopAutoPlay();
                 setActiveTabButtonState();
+                updateSessionStatusBar();
                 updateUI();
                 saveAppState();
                 return;
@@ -1911,7 +2357,15 @@ button,input,select,textarea{font:inherit}
             currentSpeechPhase = 'question';
             setActiveTabButtonState();
             setLoopToCurrentListFullRange();
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
+            } else {
+                clearShuffleSession();
+            }
+
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -2018,9 +2472,52 @@ button,input,select,textarea{font:inherit}
             return dedupePairs(pairs);
         }
 
-        function parseStructuredDeckText(text) {
-            const pairs = parseFrontBackPairsFromText(text);
+        function parseLabeledQuestionAnswerBlocks(text) {
+            const normalized = normalizePdfText(text);
+            if (!normalized) return [];
+
+            const regex = /(?:^|\n)\s*(?:PERGUNTA|QUESTION|Q|ORIGINAL)\s*:?\s*\n?([\s\S]*?)\n\s*(?:RESPOSTA|ANSWER|A|TRADUÇÃO|TRADUCAO|TRANSLATION)\s*:?\s*\n?([\s\S]*?)(?=(?:\n{2,}\s*(?:PERGUNTA|QUESTION|Q|ORIGINAL)\s*:?)|$)/gim;
+            const pairs = [];
+            let match;
+
+            while ((match = regex.exec(normalized)) !== null) {
+                const original = cleanCardSide(match[1]);
+                const translation = cleanCardSide(match[2]);
+                if (original && translation) {
+                    pairs.push({ original, translation });
+                }
+            }
+
             return dedupePairs(pairs);
+        }
+
+        function parseDelimitedLinePairs(text) {
+            const lines = String(text || '').split(/\r?\n/);
+            const pairs = [];
+
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+
+                const match = trimmed.match(/^(.*?)\s*(?:\t+|\s+\|\s+|\s*=>\s*|\s*->\s*|\s*;\s+)\s*(.+)$/);
+                if (match) {
+                    const original = cleanCardSide(match[1]);
+                    const translation = cleanCardSide(match[2]);
+                    if (original && translation) {
+                        pairs.push({ original, translation });
+                    }
+                }
+            });
+
+            return dedupePairs(pairs);
+        }
+
+        function parseStructuredDeckText(text) {
+            return dedupePairs([
+                ...parseFrontBackPairsFromText(text),
+                ...parseLabeledQuestionAnswerBlocks(text),
+                ...parseDelimitedLinePairs(text)
+            ]);
         }
 
         function detectStructuredPageType(text) {
@@ -2191,8 +2688,16 @@ button,input,select,textarea{font:inherit}
             showTranslation = false;
             setActiveTabButtonState();
             setLoopToCurrentListFullRange();
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
+            } else {
+                clearShuffleSession();
+            }
+
             refreshDeckSelectors();
             updateLoopRange();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -2318,7 +2823,7 @@ button,input,select,textarea{font:inherit}
                 const cards = parseStructuredDeckText(text);
 
                 if (!cards.length) {
-                    throw new Error('Não encontrei pares FRENTE/VERSO válidos no texto colado.');
+                    throw new Error('Não encontrei pares válidos no texto colado. Tente FRENTE/VERSO, PERGUNTA/RESPOSTA ou frente | verso.');
                 }
 
                 importCardsToDeck(cards, targetDeckId, importMode, 'texto colado');
@@ -2348,6 +2853,15 @@ button,input,select,textarea{font:inherit}
             if (currentSentences.length === 0) {
                 showNotification('Nenhuma frase disponível para reproduzir.', 'info');
                 return;
+            }
+
+            const bounds = getEffectiveLoopBounds(currentSentences.length);
+            if (currentSentenceIndex < bounds.start || currentSentenceIndex > bounds.end) {
+                currentSentenceIndex = bounds.start;
+            }
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
             }
 
             isPlaying = true;
@@ -2382,6 +2896,11 @@ button,input,select,textarea{font:inherit}
             currentSpeechPhase = 'question';
             clearPlaybackTimers();
             window.speechSynthesis.cancel();
+
+            if (shuffleModeEnabled) {
+                ensureShuffleSession(true);
+            }
+
             updateUI();
 
             const sessionId = playbackSession;
@@ -2395,6 +2914,11 @@ button,input,select,textarea{font:inherit}
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
 
+            if (shuffleModeEnabled) {
+                goToNextShuffled();
+                return;
+            }
+
             const bounds = getEffectiveLoopBounds(currentSentences.length);
 
             if (currentSentenceIndex < bounds.start || currentSentenceIndex > bounds.end) {
@@ -2405,6 +2929,27 @@ button,input,select,textarea{font:inherit}
             currentSentenceIndex = currentSentenceIndex >= bounds.end
                 ? bounds.start
                 : currentSentenceIndex + 1;
+        }
+
+        function advanceToPreviousSentence() {
+            const currentSentences = getCurrentSentences();
+            if (currentSentences.length === 0) return;
+
+            if (shuffleModeEnabled) {
+                goToPreviousShuffled();
+                return;
+            }
+
+            const bounds = getEffectiveLoopBounds(currentSentences.length);
+
+            if (currentSentenceIndex < bounds.start || currentSentenceIndex > bounds.end) {
+                currentSentenceIndex = bounds.end;
+                return;
+            }
+
+            currentSentenceIndex = currentSentenceIndex <= bounds.start
+                ? bounds.end
+                : currentSentenceIndex - 1;
         }
 
         function speakText(text, phase, sessionId, onDone) {
@@ -2421,7 +2966,6 @@ button,input,select,textarea{font:inherit}
 
             if (speechSettings.voice) {
                 utterance.voice = speechSettings.voice;
-                console.log(`Usando voz: ${speechSettings.voice.name} para ${phase} (${speechSettings.langCode})`);
             }
 
             utterance.onend = () => {
@@ -2429,8 +2973,7 @@ button,input,select,textarea{font:inherit}
                 onDone?.();
             };
 
-            utterance.onerror = (event) => {
-                console.error('Erro ao reproduzir TTS:', event);
+            utterance.onerror = () => {
                 if (!isPlaying || sessionId !== playbackSession) return;
                 onDone?.();
             };
@@ -2447,6 +2990,24 @@ button,input,select,textarea{font:inherit}
             }, 300);
         }
 
+        function scheduleAnswerRepeat(sessionId, nextRepeatIndex) {
+            clearTimeout(answerDelayTimeout);
+
+            answerDelayTimeout = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                playSentence(sessionId, 'answer', nextRepeatIndex);
+            }, 320);
+        }
+
+        function scheduleQuestionAfterAnswer(sessionId) {
+            clearTimeout(questionRepeatTimeout);
+
+            questionRepeatTimeout = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                playSentence(sessionId, 'question-return', 1);
+            }, 320);
+        }
+
         function playSentence(sessionId = playbackSession, phase = 'question', repeatIndex = 1) {
             const currentSentences = getCurrentSentences();
 
@@ -2459,14 +3020,17 @@ button,input,select,textarea{font:inherit}
             }
 
             const sentence = currentSentences[currentSentenceIndex];
+            const questionText = currentMode === 'input' ? sentence.original : sentence.translation;
+            const answerText = currentMode === 'input' ? sentence.translation : sentence.original;
+
+            const isAnswerPhase = phase === 'answer';
+            const speechPhase = isAnswerPhase ? 'answer' : 'question';
+            const textToSpeak = isAnswerPhase ? answerText : questionText;
+
             currentSpeechPhase = phase;
             updateUI();
 
-            const questionText = currentMode === 'input' ? sentence.original : sentence.translation;
-            const answerText = currentMode === 'input' ? sentence.translation : sentence.original;
-            const textToSpeak = phase === 'question' ? questionText : answerText;
-
-            speakText(textToSpeak, phase, sessionId, () => {
+            speakText(textToSpeak, speechPhase, sessionId, () => {
                 if (!isPlaying || sessionId !== playbackSession) return;
 
                 if (phase === 'question') {
@@ -2477,7 +3041,21 @@ button,input,select,textarea{font:inherit}
                     } else {
                         scheduleNextSentence(sessionId);
                     }
-                } else {
+                    return;
+                }
+
+                if (phase === 'answer') {
+                    if (repeatIndex < answerRepeatCount) {
+                        scheduleAnswerRepeat(sessionId, repeatIndex + 1);
+                    } else if (repeatQuestionAfterAnswer) {
+                        scheduleQuestionAfterAnswer(sessionId);
+                    } else {
+                        scheduleNextSentence(sessionId);
+                    }
+                    return;
+                }
+
+                if (phase === 'question-return') {
                     scheduleNextSentence(sessionId);
                 }
             });
@@ -2512,8 +3090,9 @@ button,input,select,textarea{font:inherit}
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
 
-            currentSentenceIndex = (currentSentenceIndex + 1) % currentSentences.length;
+            advanceToNextSentence();
             currentSpeechPhase = 'question';
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -2526,8 +3105,9 @@ button,input,select,textarea{font:inherit}
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
 
-            currentSentenceIndex = (currentSentenceIndex - 1 + currentSentences.length) % currentSentences.length;
+            advanceToPreviousSentence();
             currentSpeechPhase = 'question';
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -2567,7 +3147,13 @@ button,input,select,textarea{font:inherit}
 
             currentSpeechPhase = 'question';
             updateLoopRange();
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
+            }
+
             refreshDeckSelectors();
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -2599,6 +3185,12 @@ button,input,select,textarea{font:inherit}
             if (num > 0 && num <= currentSentences.length) {
                 currentSentenceIndex = num - 1;
                 currentSpeechPhase = 'question';
+
+                if (shuffleModeEnabled) {
+                    rebuildShuffleOrder({ keepCurrentAtStart: true });
+                }
+
+                updateSessionStatusBar();
                 updateUI();
                 closeGoToSentence();
                 saveAppState();
@@ -2614,21 +3206,21 @@ button,input,select,textarea{font:inherit}
         function toggleSettings() {
             document.getElementById('settingsOverlay').classList.toggle('active');
             populateVoiceSelectors();
-            updateQuestionRepeat();
+            renderQuestionRepeatDisplay();
+            renderAnswerRepeatDisplay();
+            renderRepeatQuestionAfterAnswerUI();
+            renderShuffleUI();
+            refreshFlowPreview();
+            updateAnswerPauseDisplay(false);
+            updateIntervalDisplay(false);
             updateLoopRange();
-            updateAnswerPauseDisplay();
-            updateIntervalDisplay();
         }
 
         function setMode(mode) {
             currentMode = mode;
-            document.getElementById('modeInputBtn').style.background = mode === 'input'
-                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                : 'linear-gradient(135deg, #64748b, #475569)';
-            document.getElementById('modeOutputBtn').style.background = mode === 'output'
-                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                : 'linear-gradient(135deg, #64748b, #475569)';
+            renderModeButtons();
             currentSpeechPhase = 'question';
+            updateSessionStatusBar();
             updateUI();
             saveAppState();
 
@@ -2639,15 +3231,11 @@ button,input,select,textarea{font:inherit}
 
         function setSpeakAnswer(enabled) {
             speakAnswerEnabled = enabled;
-            document.getElementById('speakAnswerOnBtn').style.background = enabled
-                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                : 'linear-gradient(135deg, #64748b, #475569)';
-            document.getElementById('speakAnswerOffBtn').style.background = !enabled
-                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                : 'linear-gradient(135deg, #64748b, #475569)';
+            renderSpeakAnswerButtons();
             currentSpeechPhase = 'question';
             updateUI();
             saveAppState();
+            refreshFlowPreview();
 
             if (isPlaying) {
                 restartPlaybackFromCurrentCard();
@@ -2664,18 +3252,18 @@ button,input,select,textarea{font:inherit}
             }
         }
 
-        function updateAnswerPauseDisplay() {
+        function updateAnswerPauseDisplay(shouldSave = true) {
             answerPauseSeconds = parseFloat(document.getElementById('answerPauseSlider').value || '0');
             const display = answerPauseSeconds === 0 ? '⚡ Instantâneo' : `⏸️ ${answerPauseSeconds}s`;
             document.getElementById('answerPauseDisplay').textContent = display;
-            saveAppState();
+            if (shouldSave) saveAppState();
         }
 
-        function updateIntervalDisplay() {
+        function updateIntervalDisplay(shouldSave = true) {
             intervalSeconds = parseFloat(document.getElementById('intervalSlider').value || '0');
             const display = intervalSeconds === 0 ? '🚀 Leitura Corrente' : `⏱️ ${intervalSeconds}s`;
             document.getElementById('intervalDisplay').textContent = display;
-            saveAppState();
+            if (shouldSave) saveAppState();
         }
 
         function updateLoopRange() {
@@ -2689,6 +3277,8 @@ button,input,select,textarea{font:inherit}
                 loopStart = 0;
                 loopEnd = 0;
                 document.getElementById('loopRangeDisplay').textContent = 'Loop: 0 até 0';
+                clearShuffleSession();
+                updateSessionStatusBar();
                 saveAppState();
                 return;
             }
@@ -2697,18 +3287,35 @@ button,input,select,textarea{font:inherit}
             loopStart = bounds.start;
             loopEnd = bounds.end;
 
+            if (currentSentenceIndex < loopStart || currentSentenceIndex > loopEnd) {
+                currentSentenceIndex = loopStart;
+            }
+
             document.getElementById('loopStart').value = loopStart;
             document.getElementById('loopEnd').value = loopEnd;
             document.getElementById('loopRangeDisplay').textContent = `Loop: ${loopStart + 1} até ${loopEnd + 1}`;
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
+            } else {
+                clearShuffleSession();
+            }
+
+            updateSessionStatusBar();
             saveAppState();
         }
 
         function saveSettings() {
-            updateQuestionRepeat();
+            updateQuestionRepeat(false);
+            updateAnswerRepeat(false);
+            renderRepeatQuestionAfterAnswerUI();
+            renderShuffleUI();
             updateAnswerPauseDisplay();
             updateIntervalDisplay();
             updateLoopRange();
-            updateVoiceSelections();
+            updateVoiceSelections(false);
+            refreshFlowPreview();
+            updateSessionStatusBar();
             saveAppState();
             showNotification('Configurações salvas!', 'success');
             toggleSettings();
@@ -2809,7 +3416,13 @@ button,input,select,textarea{font:inherit}
 
             currentSpeechPhase = 'question';
             updateLoopRange();
+
+            if (shuffleModeEnabled) {
+                rebuildShuffleOrder({ keepCurrentAtStart: true });
+            }
+
             refreshDeckSelectors();
+            updateSessionStatusBar();
             updateUI();
             toggleEditor();
             saveAppState();
@@ -2841,6 +3454,7 @@ button,input,select,textarea{font:inherit}
             pdfPromptPanel.style.display = isPromptView ? 'block' : 'none';
 
             updateCurrentDeckMeta();
+            updateSessionStatusBar();
 
             if (isPromptView) return;
 
@@ -3053,6 +3667,275 @@ Processo pelo qual plantas convertem luz, água e dióxido de carbono em glicose
             }
             copyTextToClipboard(lastPdfRawText);
         }
+
+        function downloadFile(filename, content, mimeType = 'text/plain;charset=utf-8') {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportAllDecksBackup() {
+            const payload = {
+                app: 'Revisa',
+                version: 9,
+                exportedAt: new Date().toISOString(),
+                settings: getSerializableSettings(),
+                data: {
+                    decks
+                }
+            };
+
+            const filename = `revisa-backup-${new Date().toISOString().slice(0,10)}.json`;
+            downloadFile(filename, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+            showNotification('Backup exportado!', 'success');
+        }
+
+        function exportCurrentDeckAsStructuredTxt() {
+            const deck = getCurrentDeck();
+            if (!deck || !deck.sentences.length) {
+                showNotification('O deck atual está vazio.', 'info');
+                return;
+            }
+
+            const content = deck.sentences.map(card =>
+                `FRENTE:\n${card.original}\n\nVERSO:\n${card.translation}`
+            ).join('\n\n===CARD===\n\n');
+
+            downloadFile(`${slugifyFileName(deck.name)}.txt`, content, 'text/plain;charset=utf-8');
+            showNotification('Deck exportado em TXT!', 'success');
+        }
+
+        function csvEscape(value) {
+            const str = String(value ?? '');
+            if (/[",\n;]/.test(str)) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        }
+
+        function exportCurrentDeckAsCsv() {
+            const deck = getCurrentDeck();
+            if (!deck || !deck.sentences.length) {
+                showNotification('O deck atual está vazio.', 'info');
+                return;
+            }
+
+            const header = '\uFEFFOriginal,Traducao\n';
+            const rows = deck.sentences.map(card =>
+                `${csvEscape(card.original)},${csvEscape(card.translation)}`
+            ).join('\n');
+
+            downloadFile(`${slugifyFileName(deck.name)}.csv`, header + rows, 'text/csv;charset=utf-8');
+            showNotification('Deck exportado em CSV!', 'success');
+        }
+
+        function exportCurrentDeckAsXlsx() {
+            const deck = getCurrentDeck();
+            if (!deck || !deck.sentences.length) {
+                showNotification('O deck atual está vazio.', 'info');
+                return;
+            }
+
+            const rows = [
+                ['Original', 'Traducao'],
+                ...deck.sentences.map(card => [card.original, card.translation])
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Deck');
+            XLSX.writeFile(wb, `${slugifyFileName(deck.name)}.xlsx`);
+            showNotification('Deck exportado em XLSX!', 'success');
+        }
+
+        function triggerImportBackup() {
+            document.getElementById('backupImportInput').click();
+        }
+
+        function applyImportedBackup(backup) {
+            const importedDecks = sanitizeDeckList(backup?.data?.decks || backup?.decks);
+
+            if (!importedDecks.length) {
+                throw new Error('Backup inválido: nenhum deck encontrado.');
+            }
+
+            decks = importedDecks;
+            currentDeckId = importedDecks[0].id;
+            currentTab = 'main';
+            currentSentenceIndex = 0;
+            currentSpeechPhase = 'question';
+            showTranslation = false;
+            lastPdfRawText = '';
+            clearShuffleSession();
+
+            if (backup.settings) {
+                applySettingsObject(backup.settings);
+            }
+
+            ensureDecksExist();
+            stopAutoPlay();
+
+            document.getElementById('speedSlider').value = currentSpeed;
+            document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+            document.getElementById('questionRepeatInput').value = questionRepeatCount;
+            document.getElementById('answerRepeatInput').value = answerRepeatCount;
+            document.getElementById('answerPauseSlider').value = answerPauseSeconds;
+            document.getElementById('intervalSlider').value = intervalSeconds;
+            document.getElementById('loopStart').value = loopStart;
+            document.getElementById('loopEnd').value = loopEnd;
+
+            setupLanguageSelector();
+            renderQuestionRepeatDisplay();
+            renderAnswerRepeatDisplay();
+            renderRepeatQuestionAfterAnswerUI();
+            renderShuffleUI();
+            refreshFlowPreview();
+            updateAnswerPauseDisplay(false);
+            updateIntervalDisplay(false);
+            setMode(currentMode);
+            setSpeakAnswer(speakAnswerEnabled);
+            setRepeatQuestionAfterAnswer(repeatQuestionAfterAnswer, false);
+            setShuffleMode(shuffleModeEnabled, false, false);
+
+            refreshDeckSelectors();
+            updateLastPdfRawTextArea();
+            updateLoopRange();
+            updateSessionStatusBar();
+            updateUI();
+            saveAppState();
+        }
+
+        document.getElementById('backupImportInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+
+                    const confirmed = confirm('Restaurar este backup e substituir os decks atuais?');
+                    if (!confirmed) {
+                        e.target.value = '';
+                        return;
+                    }
+
+                    applyImportedBackup(data);
+                    showNotification('Backup restaurado com sucesso!', 'success');
+                } catch (error) {
+                    showNotification('Erro ao restaurar backup: arquivo inválido.', 'error');
+                } finally {
+                    e.target.value = '';
+                }
+            };
+
+            reader.readAsText(file);
+        });
+
+        function isTextEditingTarget(target) {
+            if (!target) return false;
+            const tag = target.tagName;
+            return target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+        }
+
+        function isAnyOverlayOpen() {
+            return !!document.querySelector('.overlay.active');
+        }
+
+        function closeTopOverlay() {
+            if (document.getElementById('goToSentenceOverlay').classList.contains('active')) {
+                closeGoToSentence();
+                return true;
+            }
+            if (document.getElementById('editorOverlay').classList.contains('active')) {
+                toggleEditor();
+                return true;
+            }
+            if (document.getElementById('settingsOverlay').classList.contains('active')) {
+                toggleSettings();
+                return true;
+            }
+            if (document.getElementById('deckManagerOverlay').classList.contains('active')) {
+                toggleDeckManager();
+                return true;
+            }
+            if (document.getElementById('uploadOptionsOverlay').classList.contains('active')) {
+                hideUploadOptions();
+                return true;
+            }
+            return false;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (closeTopOverlay()) {
+                    e.preventDefault();
+                }
+                return;
+            }
+
+            if (isTextEditingTarget(e.target)) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (isAnyOverlayOpen()) return;
+
+            const key = e.key.toLowerCase();
+
+            if (e.key === ' ') {
+                e.preventDefault();
+                togglePlayPause();
+                return;
+            }
+
+            switch (key) {
+                case 'arrowright':
+                    e.preventDefault();
+                    showNextSentence();
+                    break;
+                case 'arrowleft':
+                    e.preventDefault();
+                    showPreviousSentence();
+                    break;
+                case 'a':
+                    e.preventDefault();
+                    toggleShowAnswer();
+                    break;
+                case 'm':
+                    e.preventDefault();
+                    toggleMarkSentence();
+                    break;
+                case 'g':
+                    e.preventDefault();
+                    showGoToSentence();
+                    break;
+                case 's':
+                    e.preventDefault();
+                    toggleSettings();
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    toggleEditor();
+                    break;
+                case 't':
+                    e.preventDefault();
+                    if (currentTab === 'main') {
+                        switchTab('marked');
+                    } else {
+                        switchTab('main');
+                    }
+                    break;
+                case 'x':
+                    e.preventDefault();
+                    setShuffleMode(!shuffleModeEnabled, isPlaying, true);
+                    break;
+            }
+        });
 
         document.addEventListener('click', (e) => {
             if (e.target.id === 'uploadOptionsOverlay') hideUploadOptions();
