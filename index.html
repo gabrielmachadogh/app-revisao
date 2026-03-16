@@ -30,9 +30,14 @@
     --bg-a:#eef2ff;
     --bg-b:#f8fafc;
     --surface:rgba(255,255,255,.78);
+    --surface-strong:rgba(255,255,255,.9);
+    --surface-soft:rgba(255,255,255,.62);
     --text:#0f172a;
+    --text-soft:#334155;
     --muted:#64748b;
+    --muted-2:#94a3b8;
     --border:rgba(148,163,184,.22);
+    --border-strong:rgba(99,102,241,.16);
     --primary:#6366f1;
     --primary-2:#8b5cf6;
     --cyan:#06b6d4;
@@ -44,6 +49,12 @@
     --neutral-2:#475569;
     --shadow:0 18px 48px rgba(15,23,42,.12);
     --shadow-soft:0 10px 24px rgba(15,23,42,.08);
+    --shadow-xs:0 4px 10px rgba(15,23,42,.05);
+    --radius-xl:28px;
+    --radius-lg:22px;
+    --radius-md:18px;
+    --radius-sm:14px;
+    --radius-xs:12px;
 }
 
 *{box-sizing:border-box}
@@ -67,13 +78,13 @@ body{
 
 #app-container{
     width:100%;
-    max-width:540px;
-    min-height:650px;
+    max-width:560px;
+    min-height:680px;
     background:var(--surface);
     backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px);
-    border:1px solid rgba(255,255,255,.55);
-    border-radius:28px;
+    border:1px solid rgba(255,255,255,.56);
+    border-radius:var(--radius-xl);
     box-shadow:var(--shadow);
     overflow:hidden;
     position:relative;
@@ -83,7 +94,7 @@ body{
     padding:20px;
     display:flex;
     flex-direction:column;
-    min-height:650px;
+    min-height:680px;
 }
 
 /* Header */
@@ -91,24 +102,26 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
-    gap:12px;
+    gap:14px;
     margin-bottom:16px;
 }
 
 #brandBlock{min-width:0}
 #header h1{
     margin:0;
-    font-size:1.65em;
-    line-height:1.05;
+    font-size:1.72em;
+    line-height:1.02;
     color:var(--text);
     font-weight:800;
-    letter-spacing:-0.03em;
+    letter-spacing:-0.04em;
 }
+
 #brandSubtitle{
-    margin-top:6px;
-    font-size:.9em;
+    margin-top:7px;
+    font-size:.92em;
     color:var(--muted);
-    line-height:1.35;
+    line-height:1.42;
+    max-width:34ch;
 }
 
 .header-buttons{
@@ -118,17 +131,23 @@ body{
     flex-shrink:0;
 }
 
+/* Buttons */
 .action-button,
 .nav-button,
-.play-pause-button{
+.play-pause-button,
+.action-button-bottom,
+.mini-btn{
     border:none;
-    color:#fff;
     cursor:pointer;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
-    box-shadow:var(--shadow-soft);
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        filter .18s ease,
+        opacity .18s ease;
+    user-select:none;
 }
 
 .action-button:hover,
@@ -141,40 +160,90 @@ body{
 }
 
 .action-button{
+    min-width:44px;
+    min-height:44px;
     padding:10px 14px;
-    border-radius:14px;
+    border-radius:16px;
     background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    color:#fff;
+    box-shadow:var(--shadow-soft);
 }
 
 .nav-button{
-    width:50px;
-    height:50px;
+    width:52px;
+    height:52px;
     border-radius:50%;
-    font-size:1.05em;
+    font-size:1.06em;
     background:linear-gradient(135deg, var(--primary), var(--cyan));
+    color:#fff;
+    box-shadow:var(--shadow-soft);
 }
 
 .play-pause-button{
-    width:74px;
-    height:74px;
+    width:78px;
+    height:78px;
     border-radius:50%;
-    font-size:1.55em;
+    font-size:1.58em;
     background:linear-gradient(135deg, var(--primary), var(--primary-2));
-    box-shadow:0 14px 32px rgba(99,102,241,.28);
+    color:#fff;
+    box-shadow:0 16px 34px rgba(99,102,241,.28);
 }
 
-/* Surface blocks */
+.action-button-bottom{
+    padding:10px 14px;
+    border-radius:14px;
+    background:linear-gradient(135deg, var(--neutral), var(--neutral-2));
+    color:#fff;
+    box-shadow:var(--shadow-soft);
+    gap:6px;
+    text-align:center;
+    font-weight:600;
+}
+
+.primary-button{
+    background:linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+    color:#fff !important;
+}
+
+.success-button{
+    background:linear-gradient(135deg, var(--success), var(--success-2)) !important;
+    color:#fff !important;
+}
+
+.warning-button{
+    background:linear-gradient(135deg, var(--warning), #fbbf24) !important;
+    color:#fff !important;
+}
+
+.danger-button{
+    background:linear-gradient(135deg, var(--danger), #f87171) !important;
+    color:#fff !important;
+}
+
+.mini-btn{
+    padding:8px 10px;
+    border-radius:12px;
+    color:#fff;
+    font-size:.82em;
+    box-shadow:var(--shadow-xs);
+    font-weight:700;
+}
+
+/* Generic surfaces */
+.surface-card,
 #deckBar,
 .helper-card,
 .overlay-content,
-.deck-item{
-    background:rgba(255,255,255,.74);
+.deck-item,
+#sentence-display{
+    background:rgba(255,255,255,.76);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
     border:1px solid var(--border);
     box-shadow:var(--shadow-soft);
 }
 
+/* Deck bar */
 #deckBar{
     border-radius:18px;
     padding:14px;
@@ -192,10 +261,10 @@ body{
 .deck-select-wrap label{
     display:block;
     margin-bottom:7px;
-    font-size:.84em;
+    font-size:.82em;
     color:var(--muted);
     font-weight:700;
-    letter-spacing:.01em;
+    letter-spacing:.02em;
 }
 
 #deckSelector,
@@ -209,8 +278,23 @@ body{
     padding:11px 12px;
     border-radius:12px;
     border:1px solid rgba(148,163,184,.28);
-    background:rgba(255,255,255,.88);
+    background:rgba(255,255,255,.9);
     color:var(--text);
+    outline:none;
+}
+
+#deckSelector:focus,
+#uploadTargetDeckSelect:focus,
+#uploadImportModeSelect:focus,
+#pasteTargetDeckSelect:focus,
+#pasteImportModeSelect:focus,
+#questionVoiceSelect:focus,
+#answerVoiceSelect:focus,
+input:focus,
+textarea:focus,
+select:focus{
+    border-color:rgba(99,102,241,.38);
+    box-shadow:0 0 0 4px rgba(99,102,241,.08);
 }
 
 #currentDeckMeta{
@@ -220,6 +304,7 @@ body{
     line-height:1.45;
 }
 
+/* Session pills */
 #sessionStatusBar{
     display:flex;
     flex-wrap:wrap;
@@ -277,38 +362,36 @@ body{
 #studyPanel{display:block}
 #pdfPromptPanel{display:none}
 
-/* Card */
+/* Sentence card */
 #sentence-display{
     position:relative;
-    border-radius:22px;
-    padding:28px 20px 22px;
+    border-radius:24px;
+    padding:30px 22px 24px;
     margin-bottom:18px;
-    min-height:138px;
+    min-height:150px;
     display:flex;
     flex-direction:column;
     justify-content:center;
     text-align:center;
-    border:1px solid var(--border);
-    box-shadow:var(--shadow-soft);
     transition:background .25s ease,border-color .25s ease,box-shadow .25s ease;
 }
 
 #sentence-display.phase-question{
     background:
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,249,255,.96));
-    border-color:rgba(99,102,241,.18);
+        linear-gradient(180deg, rgba(255,255,255,.95), rgba(246,249,255,.97));
+    border-color:rgba(99,102,241,.16);
     box-shadow:
         0 14px 30px rgba(99,102,241,.08),
-        inset 0 1px 0 rgba(255,255,255,.75);
+        inset 0 1px 0 rgba(255,255,255,.78);
 }
 
 #sentence-display.phase-answer{
     background:
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(241,252,247,.96));
-    border-color:rgba(16,185,129,.2);
+        linear-gradient(180deg, rgba(255,255,255,.95), rgba(241,252,247,.97));
+    border-color:rgba(16,185,129,.18);
     box-shadow:
         0 14px 30px rgba(16,185,129,.08),
-        inset 0 1px 0 rgba(255,255,255,.75);
+        inset 0 1px 0 rgba(255,255,255,.78);
 }
 
 .side-indicator{
@@ -330,25 +413,25 @@ body{
 .side-indicator.question{
     color:#61758a;
     background:rgba(244,247,255,.92);
-    border-color:rgba(99,102,241,.16);
+    border-color:rgba(99,102,241,.14);
 }
 
 .side-indicator.answer{
     color:#5f7b69;
     background:rgba(240,252,245,.94);
-    border-color:rgba(16,185,129,.18);
+    border-color:rgba(16,185,129,.16);
 }
 
 .side-indicator.hidden{display:none}
 
 .sentence-text{
-    font-size:1.42em;
+    font-size:1.46em;
     line-height:1.42;
     font-weight:700;
     margin:4px 0;
     color:var(--text);
     white-space:pre-line;
-    letter-spacing:-0.01em;
+    letter-spacing:-0.015em;
 }
 
 .translation-text{
@@ -378,6 +461,7 @@ body{
 #sentence-counter{
     font-size:.9em;
     color:var(--muted);
+    font-weight:600;
 }
 
 /* Bottom actions */
@@ -390,63 +474,24 @@ body{
     margin-top:auto;
 }
 
-.action-button-bottom,
-.mini-btn{
-    border:none;
-    border-radius:14px;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    transition:transform .18s ease, filter .18s ease, box-shadow .18s ease;
-}
-
-.action-button-bottom{
-    padding:10px 14px;
-    background:linear-gradient(135deg, var(--neutral), var(--neutral-2));
-    color:#fff;
-    box-shadow:var(--shadow-soft);
-    text-align:center;
-}
-
-.primary-button{
-    background:linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
-    color:#fff !important;
-}
-
-.success-button{
-    background:linear-gradient(135deg, var(--success), var(--success-2)) !important;
-    color:#fff !important;
-}
-
-.warning-button{
-    background:linear-gradient(135deg, var(--warning), #fbbf24) !important;
-    color:#fff !important;
-}
-
-.danger-button{
-    background:linear-gradient(135deg, var(--danger), #f87171) !important;
-    color:#fff !important;
-}
-
 /* Helper cards */
 .helper-card{
     border-radius:18px;
-    padding:15px;
+    padding:16px;
     margin-bottom:14px;
 }
 
 .helper-card h3{
     margin:0 0 10px;
-    font-size:1.02em;
+    font-size:1.03em;
     color:var(--text);
+    letter-spacing:-.01em;
 }
 
 .helper-note{
     font-size:.92em;
     color:var(--muted);
-    line-height:1.55;
+    line-height:1.58;
     margin-bottom:12px;
 }
 
@@ -455,7 +500,7 @@ body{
 .helper-card select{
     width:100%;
     border:1px solid rgba(148,163,184,.28);
-    background:rgba(255,255,255,.9);
+    background:rgba(255,255,255,.92);
     border-radius:14px;
     padding:12px;
     color:var(--text);
@@ -492,11 +537,11 @@ body{
     border:1px solid rgba(99,102,241,.12);
 }
 
-/* Overlays */
+/* Overlay */
 .overlay{
     position:absolute;
     inset:0;
-    background:rgba(15,23,42,.35);
+    background:rgba(15,23,42,.38);
     display:flex;
     justify-content:center;
     align-items:center;
@@ -514,17 +559,52 @@ body{
 
 .overlay-content{
     width:100%;
-    max-width:440px;
-    max-height:86vh;
+    max-width:450px;
+    max-height:88vh;
     overflow-y:auto;
-    border-radius:22px;
+    border-radius:24px;
     padding:22px;
 }
 
-.overlay-content h2{
-    margin:0 0 18px;
-    font-size:1.35em;
+.overlay-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.overlay-title-wrap h2{
+    margin:0;
+    font-size:1.36em;
     color:var(--text);
+    letter-spacing:-.02em;
+}
+
+.overlay-subtitle{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:.9em;
+    line-height:1.45;
+}
+
+.overlay-close{
+    min-width:40px;
+    min-height:40px;
+    border:none;
+    border-radius:12px;
+    background:rgba(15,23,42,.06);
+    color:#475569;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .18s ease;
+}
+
+.overlay-close:hover{
+    background:rgba(15,23,42,.1);
+    transform:translateY(-1px);
 }
 
 .overlay-content label{
@@ -544,7 +624,7 @@ body{
     margin-bottom:14px;
     border:1px solid rgba(148,163,184,.28);
     border-radius:12px;
-    background:rgba(255,255,255,.9);
+    background:rgba(255,255,255,.92);
     color:var(--text);
 }
 
@@ -578,17 +658,42 @@ body{
     cursor:pointer;
 }
 
+.settings-section{
+    border:1px solid rgba(148,163,184,.16);
+    background:rgba(255,255,255,.55);
+    border-radius:18px;
+    padding:14px;
+    margin-bottom:14px;
+}
+
+.settings-section-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:800;
+    color:var(--text-soft);
+    margin-bottom:6px;
+    font-size:.96em;
+}
+
+.settings-section-note{
+    color:var(--muted);
+    font-size:.86em;
+    line-height:1.48;
+    margin-bottom:12px;
+}
+
 #language-selector{
     display:flex;
     flex-wrap:wrap;
     gap:10px;
-    margin-bottom:18px;
+    margin-bottom:0;
 }
 
 #language-selector button{
     border:1px solid var(--border);
     border-radius:14px;
-    background:rgba(255,255,255,.86);
+    background:rgba(255,255,255,.9);
     color:var(--text);
     padding:8px 12px;
     cursor:pointer;
@@ -605,8 +710,8 @@ body{
     border:1px solid var(--border);
     border-radius:16px;
     overflow:hidden;
-    background:rgba(255,255,255,.68);
-    margin-bottom:15px;
+    background:rgba(255,255,255,.74);
+    margin-bottom:0;
 }
 
 .voice-collapsible summary{
@@ -653,7 +758,7 @@ body{
 
 .deck-item{
     border-radius:16px;
-    padding:12px;
+    padding:13px;
 }
 
 .deck-item.current{
@@ -685,13 +790,6 @@ body{
     gap:8px;
     flex-wrap:wrap;
     margin-top:12px;
-}
-
-.mini-btn{
-    padding:8px 10px;
-    color:#fff;
-    font-size:.82em;
-    box-shadow:var(--shadow-soft);
 }
 
 /* Editor controls */
@@ -739,7 +837,7 @@ body{
 
 /* Loading */
 #loading-overlay{
-    background:rgba(255,255,255,.76);
+    background:rgba(255,255,255,.8);
     color:var(--text);
     flex-direction:column;
 }
@@ -763,15 +861,16 @@ body{
     body{padding:12px}
     #main-screen{padding:16px}
     #header{align-items:flex-start}
-    #header h1{font-size:1.4em}
+    #header h1{font-size:1.42em}
     #brandSubtitle{font-size:.85em}
     .deck-bar-top{flex-direction:column;align-items:stretch}
     .sentence-text{font-size:1.22em}
-    .play-pause-button{width:64px;height:64px}
-    .nav-button{width:42px;height:42px}
+    .play-pause-button{width:66px;height:66px}
+    .nav-button{width:44px;height:44px}
     .action-button,.action-button-bottom{font-size:.84em}
     .side-indicator{top:10px;right:10px;font-size:.66em}
     .status-pill{font-size:.72em}
+    .overlay-content{padding:18px}
 }
     </style>
 </head>
@@ -826,14 +925,14 @@ body{
                     <i class="fas fa-bookmark"></i> Marcadas (<span id="markedSentencesCount">0</span>)
                 </button>
                 <button id="pdfPromptTab" class="tab-btn" onclick="switchTab('pdfPrompt')">
-                    <i class="fas fa-file-pdf"></i> Prompt PDF
+                    <i class="fas fa-file-pdf"></i> PDF / IA
                 </button>
             </div>
 
             <div id="studyPanel">
                 <div id="sentence-display" class="phase-question">
                     <div id="sideIndicator" class="side-indicator question">Pergunta</div>
-                    <div class="sentence-text">Nenhuma frase carregada</div>
+                    <div class="sentence-text">Nenhuma frase carregada neste deck</div>
                     <div class="translation-text"></div>
                 </div>
 
@@ -869,22 +968,23 @@ body{
             <div id="pdfPromptPanel">
                 <div class="helper-card">
                     <div class="helper-badge">Leitura inteligente de PDF FRENTE/VERSO</div>
-                    <h3><i class="fas fa-info-circle"></i> Como o app entende PDFs</h3>
+                    <h3><i class="fas fa-info-circle"></i> Como o Revisa interpreta PDFs</h3>
                     <div class="helper-note">
-                        O app tenta reconhecer PDFs que tenham cartões no formato <strong>FRENTE</strong> e <strong>VERSO</strong>.
-                        Quando encontra esses rótulos, ele os remove automaticamente.
-                        Então o app <strong>não fala “frente” e “verso”</strong> e também <strong>não mostra esses rótulos no display</strong>.
+                        O app reconhece PDFs com blocos em formato <strong>FRENTE</strong> e <strong>VERSO</strong>.  
+                        Quando encontra esses rótulos, remove automaticamente da visualização e da fala.
                         <br><br>
-                        O conteúdo de <strong>FRENTE</strong> vira a pergunta, e o conteúdo de <strong>VERSO</strong> vira a resposta.
+                        Resultado:
+                        <br>• <strong>FRENTE</strong> vira a pergunta
+                        <br>• <strong>VERSO</strong> vira a resposta
                         <br><br>
-                        Se o PDF não estiver estruturado ou for imagem escaneada, use o prompt abaixo para reorganizar o texto em alguma IA.
+                        Se o PDF vier mal estruturado ou escaneado como imagem, use o prompt abaixo em uma IA para reorganizar o conteúdo.
                     </div>
                 </div>
 
                 <div class="helper-card">
                     <h3><i class="fas fa-robot"></i> Prompt para IA</h3>
                     <div class="helper-note">
-                        Copie este prompt e cole na IA da sua preferência. Se quiser, copie também o texto bruto do último PDF.
+                        Copie o prompt abaixo e envie junto com o texto bruto do PDF para a IA da sua preferência.
                     </div>
                     <textarea id="pdfPromptTextarea" readonly></textarea>
                     <div class="helper-actions">
@@ -910,7 +1010,7 @@ body{
                 <div class="helper-card">
                     <h3><i class="fas fa-file-import"></i> Texto bruto extraído do último PDF</h3>
                     <div class="helper-note">
-                        Se o PDF não for lido corretamente, copie este texto e envie junto com o prompt para a IA.
+                        Se o PDF não for reconhecido corretamente, copie este texto e use junto com o prompt.
                     </div>
                     <textarea id="lastPdfRawTextArea" readonly></textarea>
                     <div class="helper-actions">
@@ -921,15 +1021,18 @@ body{
                 </div>
 
                 <div class="helper-card">
-                    <h3><i class="fas fa-paste"></i> Colar texto estruturado da IA</h3>
+                    <h3><i class="fas fa-paste"></i> Importar texto estruturado</h3>
                     <div class="helper-note">
-                        Cole aqui o texto que a IA devolveu no formato FRENTE/VERSO, PERGUNTA/RESPOSTA ou pares simples como <strong>frente | verso</strong>.
+                        Cole aqui o texto já organizado pela IA. O app aceita:
+                        <br>• FRENTE / VERSO
+                        <br>• PERGUNTA / RESPOSTA
+                        <br>• pares simples como <strong>frente | verso</strong>
                     </div>
 
                     <label for="pasteTargetDeckSelect" style="font-weight:700; margin-bottom:6px; display:block;">Deck de destino</label>
                     <select id="pasteTargetDeckSelect"></select>
 
-                    <label for="pasteImportModeSelect" style="font-weight:700; margin-bottom:6px; display:block;">Modo de importação</label>
+                    <label for="pasteImportModeSelect" style="font-weight:700; margin-bottom:6px; display:block;">Como importar</label>
                     <select id="pasteImportModeSelect">
                         <option value="replace">Substituir conteúdo do deck</option>
                         <option value="append">Adicionar ao deck</option>
@@ -955,12 +1058,20 @@ body{
 
     <div id="uploadOptionsOverlay" class="overlay">
         <div class="overlay-content">
-            <h2><i class="fas fa-cloud-upload-alt"></i> Importar Arquivo</h2>
+            <div class="overlay-header">
+                <div class="overlay-title-wrap">
+                    <h2><i class="fas fa-cloud-upload-alt"></i> Importar Arquivo</h2>
+                    <div class="overlay-subtitle">Escolha o deck de destino e como deseja inserir o conteúdo.</div>
+                </div>
+                <button class="overlay-close" onclick="hideUploadOptions()" title="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
             <label for="uploadTargetDeckSelect">Deck de destino</label>
             <select id="uploadTargetDeckSelect"></select>
 
-            <label for="uploadImportModeSelect">Modo de importação</label>
+            <label for="uploadImportModeSelect">Como importar</label>
             <select id="uploadImportModeSelect">
                 <option value="replace">Substituir conteúdo do deck</option>
                 <option value="append">Adicionar ao deck</option>
@@ -977,131 +1088,171 @@ body{
 
     <div id="settingsOverlay" class="overlay">
         <div class="overlay-content">
-            <h2><i class="fas fa-cog"></i> Configurações</h2>
-            
-            <label>Modo de Reprodução:</label>
-            <div style="margin-bottom:20px; display:flex; gap:8px;">
-                <button id="modeInputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('input')">
-                    <i class="fas fa-microphone"></i> Input (A → B)
-                </button>
-                <button id="modeOutputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('output')">
-                    <i class="fas fa-volume-up"></i> Output (B → A)
+            <div class="overlay-header">
+                <div class="overlay-title-wrap">
+                    <h2><i class="fas fa-cog"></i> Configurações</h2>
+                    <div class="overlay-subtitle">Ajuste o fluxo da revisão, voz, tempo e sessão atual.</div>
+                </div>
+                <button class="overlay-close" onclick="toggleSettings()" title="Fechar">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <label>Falar Resposta:</label>
-            <div style="margin-bottom:20px; display:flex; gap:8px;">
-                <button id="speakAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(true)">
-                    <i class="fas fa-toggle-on"></i> Ligado
-                </button>
-                <button id="speakAnswerOffBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(false)">
-                    <i class="fas fa-toggle-off"></i> Desligado
-                </button>
-            </div>
+            <div class="settings-section">
+                <div class="settings-section-title"><i class="fas fa-route"></i> Fluxo de estudo</div>
+                <div class="settings-section-note">Defina a ordem de reprodução entre pergunta e resposta.</div>
 
-            <label>Ordem da Sessão:</label>
-            <div style="margin-bottom:10px; display:flex; gap:8px;">
-                <button id="shuffleOffBtn" class="action-button-bottom" style="flex:1;" onclick="setShuffleMode(false)">
-                    <i class="fas fa-list-ol"></i> Ordem Normal
-                </button>
-                <button id="shuffleOnBtn" class="action-button-bottom" style="flex:1;" onclick="setShuffleMode(true)">
-                    <i class="fas fa-shuffle"></i> Embaralhar Sessão
-                </button>
-            </div>
-            <div id="shuffleModeDisplay" style="text-align:center; margin-bottom:15px;">
-                Ordem normal: segue a sequência do deck ou da aba atual
-            </div>
-
-            <label>Velocidade: <span id="speedDisplay">1.0x</span></label>
-            <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(event)">
-
-            <label>Repetir pergunta:</label>
-            <input type="number" id="questionRepeatInput" min="1" max="10" value="1" oninput="updateQuestionRepeat()">
-            <div id="questionRepeatDisplay" style="text-align:center; margin-bottom:15px;">
-                Pergunta será falada 1 vez
-            </div>
-
-            <label>Repetir resposta:</label>
-            <input type="number" id="answerRepeatInput" min="1" max="10" value="1" oninput="updateAnswerRepeat()">
-            <div id="answerRepeatDisplay" style="text-align:center; margin-bottom:15px;">
-                Resposta será falada 1 vez
-            </div>
-
-            <label>Repetir pergunta após resposta:</label>
-            <div style="margin-bottom:10px; display:flex; gap:8px;">
-                <button id="repeatQuestionAfterAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setRepeatQuestionAfterAnswer(true)">
-                    <i class="fas fa-repeat"></i> Ligado
-                </button>
-                <button id="repeatQuestionAfterAnswerOffBtn" class="action-button-bottom" style="flex:1;" onclick="setRepeatQuestionAfterAnswer(false)">
-                    <i class="fas fa-ban"></i> Desligado
-                </button>
-            </div>
-            <div id="repeatQuestionAfterAnswerDisplay" style="text-align:center; margin-bottom:15px;">
-                Pergunta não volta após a resposta
-            </div>
-
-            <div style="margin: 0 0 18px; padding: 12px 14px; border-radius: 14px; background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.12); color: #475569; font-size: .92em;">
-                <strong style="color:#334155;">Fluxo atual:</strong>
-                <span id="flowPreview">Pergunta x1 → Próxima</span>
-            </div>
-
-            <label>Pausa entre pergunta e resposta: <span id="answerPauseDisplay">⚡ Instantâneo</span></label>
-            <input type="range" id="answerPauseSlider" min="0" max="10" step="0.5" value="0" oninput="updateAnswerPauseDisplay()">
-
-            <label>Intervalo até a próxima frase: <span id="intervalDisplay">🚀 Leitura Corrente</span></label>
-            <input type="range" id="intervalSlider" min="0" max="10" step="0.5" value="0" oninput="updateIntervalDisplay()">
-
-            <label>Seletor de Idioma:</label>
-            <div id="language-selector"></div>
-
-            <details class="voice-collapsible">
-                <summary><i class="fas fa-list"></i>&nbsp; Selecionar vozes disponíveis</summary>
-                <div class="voice-content">
-                    <div id="voicesLoadedInfo" class="voice-meta">Carregando vozes...</div>
-
-                    <button class="action-button-bottom primary-button" style="width:100%; margin-bottom:12px;" onclick="loadVoices()">
-                        <i class="fas fa-rotate"></i> Atualizar lista de vozes
+                <label>Modo de Reprodução:</label>
+                <div style="margin-bottom:20px; display:flex; gap:8px;">
+                    <button id="modeInputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('input')">
+                        <i class="fas fa-microphone"></i> Frente → Verso
                     </button>
-
-                    <label for="questionVoiceSelect">Voz da pergunta:</label>
-                    <select id="questionVoiceSelect" onchange="updateVoiceSelections()">
-                        <option value="">Automático</option>
-                    </select>
-
-                    <label for="answerVoiceSelect">Voz da resposta:</label>
-                    <select id="answerVoiceSelect" onchange="updateVoiceSelections()">
-                        <option value="">Automático</option>
-                    </select>
+                    <button id="modeOutputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('output')">
+                        <i class="fas fa-volume-up"></i> Verso → Frente
+                    </button>
                 </div>
-            </details>
 
-            <label>Loop Personalizado:</label>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <div style="flex:1;">
-                    <label style="font-size:.9em;">Início:</label>
-                    <input type="number" id="loopStart" min="0" value="0" oninput="updateLoopRange()">
+                <label>Falar Resposta:</label>
+                <div style="margin-bottom:20px; display:flex; gap:8px;">
+                    <button id="speakAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(true)">
+                        <i class="fas fa-toggle-on"></i> Ligado
+                    </button>
+                    <button id="speakAnswerOffBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(false)">
+                        <i class="fas fa-toggle-off"></i> Desligado
+                    </button>
                 </div>
-                <div style="flex:1;">
-                    <label style="font-size:.9em;">Fim:</label>
-                    <input type="number" id="loopEnd" min="0" value="0" oninput="updateLoopRange()">
+
+                <label>Repetir pergunta:</label>
+                <input type="number" id="questionRepeatInput" min="1" max="10" value="1" oninput="updateQuestionRepeat()">
+                <div id="questionRepeatDisplay" style="text-align:center; margin-bottom:15px;">
+                    Pergunta será falada 1 vez
+                </div>
+
+                <label>Repetir resposta:</label>
+                <input type="number" id="answerRepeatInput" min="1" max="10" value="1" oninput="updateAnswerRepeat()">
+                <div id="answerRepeatDisplay" style="text-align:center; margin-bottom:15px;">
+                    Resposta será falada 1 vez
+                </div>
+
+                <label>Repetir pergunta após resposta:</label>
+                <div style="margin-bottom:10px; display:flex; gap:8px;">
+                    <button id="repeatQuestionAfterAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setRepeatQuestionAfterAnswer(true)">
+                        <i class="fas fa-repeat"></i> Ligado
+                    </button>
+                    <button id="repeatQuestionAfterAnswerOffBtn" class="action-button-bottom" style="flex:1;" onclick="setRepeatQuestionAfterAnswer(false)">
+                        <i class="fas fa-ban"></i> Desligado
+                    </button>
+                </div>
+                <div id="repeatQuestionAfterAnswerDisplay" style="text-align:center; margin-bottom:0;">
+                    Pergunta não volta após a resposta
                 </div>
             </div>
-            <div id="loopRangeDisplay" style="text-align:center; margin-bottom:15px;">Loop: 1 até 1</div>
+
+            <div class="settings-section">
+                <div class="settings-section-title"><i class="fas fa-wave-square"></i> Ritmo da sessão</div>
+                <div class="settings-section-note">Ajuste velocidade, pausas e visualize exatamente o fluxo atual.</div>
+
+                <div style="margin: 0 0 18px; padding: 12px 14px; border-radius: 14px; background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.12); color: #475569; font-size: .92em;">
+                    <strong style="color:#334155;">Fluxo atual:</strong>
+                    <span id="flowPreview">Pergunta x1 → Próxima</span>
+                </div>
+
+                <label>Velocidade: <span id="speedDisplay">1.0x</span></label>
+                <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(event)">
+
+                <label>Pausa entre pergunta e resposta: <span id="answerPauseDisplay">⚡ Instantâneo</span></label>
+                <input type="range" id="answerPauseSlider" min="0" max="10" step="0.5" value="0" oninput="updateAnswerPauseDisplay()">
+
+                <label>Intervalo até a próxima frase: <span id="intervalDisplay">🚀 Leitura Corrente</span></label>
+                <input type="range" id="intervalSlider" min="0" max="10" step="0.5" value="0" oninput="updateIntervalDisplay()">
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title"><i class="fas fa-microphone-lines"></i> Idioma e vozes</div>
+                <div class="settings-section-note">Escolha idioma base e, se quiser, vozes específicas para pergunta e resposta.</div>
+
+                <label>Seletor de Idioma:</label>
+                <div id="language-selector"></div>
+
+                <div style="height:12px;"></div>
+
+                <details class="voice-collapsible">
+                    <summary><i class="fas fa-list"></i>&nbsp; Selecionar vozes disponíveis</summary>
+                    <div class="voice-content">
+                        <div id="voicesLoadedInfo" class="voice-meta">Carregando vozes...</div>
+
+                        <button class="action-button-bottom primary-button" style="width:100%; margin-bottom:12px;" onclick="loadVoices()">
+                            <i class="fas fa-rotate"></i> Atualizar lista de vozes
+                        </button>
+
+                        <label for="questionVoiceSelect">Voz da pergunta:</label>
+                        <select id="questionVoiceSelect" onchange="updateVoiceSelections()">
+                            <option value="">Automático</option>
+                        </select>
+
+                        <label for="answerVoiceSelect">Voz da resposta:</label>
+                        <select id="answerVoiceSelect" onchange="updateVoiceSelections()">
+                            <option value="">Automático</option>
+                        </select>
+                    </div>
+                </details>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title"><i class="fas fa-repeat"></i> Sessão atual</div>
+                <div class="settings-section-note">Defina ordem da sessão e recorte de loop usado na reprodução.</div>
+
+                <label>Ordem da Sessão:</label>
+                <div style="margin-bottom:10px; display:flex; gap:8px;">
+                    <button id="shuffleOffBtn" class="action-button-bottom" style="flex:1;" onclick="setShuffleMode(false)">
+                        <i class="fas fa-list-ol"></i> Ordem Normal
+                    </button>
+                    <button id="shuffleOnBtn" class="action-button-bottom" style="flex:1;" onclick="setShuffleMode(true)">
+                        <i class="fas fa-shuffle"></i> Embaralhar Sessão
+                    </button>
+                </div>
+                <div id="shuffleModeDisplay" style="text-align:center; margin-bottom:15px;">
+                    Ordem normal: segue a sequência do deck ou da aba atual
+                </div>
+
+                <label>Loop Personalizado:</label>
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="flex:1;">
+                        <label style="font-size:.9em;">Início:</label>
+                        <input type="number" id="loopStart" min="0" value="0" oninput="updateLoopRange()">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:.9em;">Fim:</label>
+                        <input type="number" id="loopEnd" min="0" value="0" oninput="updateLoopRange()">
+                    </div>
+                </div>
+                <div id="loopRangeDisplay" style="text-align:center; margin-bottom:0;">Loop: 1 até 1</div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title"><i class="fas fa-keyboard"></i> Ajuda rápida</div>
+                <div class="settings-section-note">
+                    Espaço = play/pause • ← = anterior • → = próxima • A = resposta • M = marcar • G = ir à frase • S = configurações • E = editor • T = alternar abas • X = shuffle • Esc = fechar janelas
+                </div>
+            </div>
 
             <button id="save-settings-button" class="action-button-bottom success-button" style="width:100%;" onclick="saveSettings()">
                 <i class="fas fa-save"></i> Salvar Configurações
             </button>
-
-            <div style="margin-top:14px; padding:12px 14px; border-radius:14px; background:rgba(15,23,42,.03); border:1px solid rgba(148,163,184,.15); color:#64748b; font-size:.84em; line-height:1.6;">
-                <strong style="color:#334155;">Atalhos:</strong><br>
-                Espaço = play/pause • ← = anterior • → = próxima • A = resposta • M = marcar • G = ir à frase • S = configurações • E = editor • T = alternar abas • X = shuffle • Esc = fechar janelas
-            </div>
         </div>
     </div>
 
     <div id="deckManagerOverlay" class="overlay">
         <div class="overlay-content">
-            <h2><i class="fas fa-layer-group"></i> Decks Salvos</h2>
+            <div class="overlay-header">
+                <div class="overlay-title-wrap">
+                    <h2><i class="fas fa-layer-group"></i> Decks Salvos</h2>
+                    <div class="overlay-subtitle">Crie, organize, exporte e restaure seus decks com segurança.</div>
+                </div>
+                <button class="overlay-close" onclick="toggleDeckManager()" title="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
             <label for="newDeckNameInput">Novo deck</label>
             <input type="text" id="newDeckNameInput" placeholder="Digite o nome do novo deck">
@@ -1114,7 +1265,7 @@ body{
             <div class="helper-card" style="margin-top:15px;">
                 <h3><i class="fas fa-shield-heart"></i> Backup & Exportação</h3>
                 <div class="helper-note">
-                    Mantenha seus decks seguros e exporte o deck atual em formatos simples para guardar ou reaproveitar.
+                    Faça backup completo do app ou exporte apenas o deck atual nos formatos mais úteis.
                 </div>
                 <div class="helper-actions">
                     <button class="action-button-bottom primary-button" onclick="exportAllDecksBackup()">
@@ -1134,18 +1285,21 @@ body{
                     </button>
                 </div>
             </div>
-
-            <div class="editor-controls">
-                <button class="action-button-bottom danger-button" onclick="toggleDeckManager()">
-                    <i class="fas fa-times"></i> Fechar
-                </button>
-            </div>
         </div>
     </div>
 
     <div id="editorOverlay" class="overlay">
         <div class="overlay-content">
-            <h2 id="editorTitle"><i class="fas fa-edit"></i> Editor do Deck</h2>
+            <div class="overlay-header">
+                <div class="overlay-title-wrap">
+                    <h2 id="editorTitle"><i class="fas fa-edit"></i> Editor do Deck</h2>
+                    <div class="overlay-subtitle">Edite os pares do deck atual diretamente na tabela abaixo.</div>
+                </div>
+                <button class="overlay-close" onclick="toggleEditor()" title="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
             <div style="margin-bottom:15px;">
                 <button class="action-button-bottom success-button" style="width:100%; margin-bottom:10px;" onclick="addNewRow()">
                     <i class="fas fa-plus"></i> Adicionar Linha
@@ -1155,8 +1309,8 @@ body{
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
                         <tr style="background-color:rgba(248,250,252,.9);">
-                            <th style="padding:10px; border:1px solid rgba(148,163,184,.18); text-align:left;">Original (A)</th>
-                            <th style="padding:10px; border:1px solid rgba(148,163,184,.18); text-align:left;">Tradução / Resposta (B)</th>
+                            <th style="padding:10px; border:1px solid rgba(148,163,184,.18); text-align:left;">Frente (A)</th>
+                            <th style="padding:10px; border:1px solid rgba(148,163,184,.18); text-align:left;">Verso (B)</th>
                         </tr>
                     </thead>
                     <tbody id="editorTableBody"></tbody>
@@ -1175,8 +1329,17 @@ body{
 
     <div id="goToSentenceOverlay" class="overlay">
         <div class="overlay-content">
-            <h2><i class="fas fa-search"></i> Ir à Frase</h2>
-            <label for="sentenceNumberInput">Número da frase:</label>
+            <div class="overlay-header">
+                <div class="overlay-title-wrap">
+                    <h2><i class="fas fa-search"></i> Ir à Frase</h2>
+                    <div class="overlay-subtitle">Digite o número exato da frase dentro da aba atual.</div>
+                </div>
+                <button class="overlay-close" onclick="closeGoToSentence()" title="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <label for="sentenceNumberInput">Número da frase</label>
             <input type="number" id="sentenceNumberInput" placeholder="Digite o número da frase" min="1">
             <div id="totalSentencesInfo" style="text-align:center; margin-bottom:15px; font-size:.9em; color:#666;">Total: 0 frases</div>
             <div class="editor-controls">
@@ -2607,7 +2770,7 @@ body{
             updateLastPdfRawTextArea();
 
             if (!pages.length || !lastPdfRawText.trim()) {
-                throw new Error('O PDF não possui texto extraível. Se for um PDF escaneado/imagem, use OCR ou a aba "Prompt PDF".');
+                throw new Error('O PDF não possui texto extraível. Se for um PDF escaneado/imagem, use OCR ou a aba "PDF / IA".');
             }
 
             let pairs = [];
@@ -2629,7 +2792,7 @@ body{
             pairs = dedupePairs(pairs);
 
             if (!pairs.length) {
-                throw new Error('Não encontrei pares FRENTE/VERSO reconhecíveis no PDF. Abra a aba "Prompt PDF" para gerar um formato compatível.');
+                throw new Error('Não encontrei pares FRENTE/VERSO reconhecíveis no PDF. Abra a aba "PDF / IA" para gerar um formato compatível.');
             }
 
             return pairs;
@@ -2781,7 +2944,7 @@ body{
                     if (file.name.toLowerCase().endsWith('.pdf')) {
                         switchTab('pdfPrompt');
                         if (lastPdfRawText && lastPdfRawText.trim()) {
-                            showNotification('PDF não reconhecido. A aba "Prompt PDF" foi aberta e o texto bruto ficou disponível para cópia.', 'error');
+                            showNotification('PDF não reconhecido. A aba "PDF / IA" foi aberta e o texto bruto ficou disponível para cópia.', 'error');
                         } else {
                             showNotification(error.message, 'error');
                         }
@@ -3476,9 +3639,13 @@ body{
 
             if (currentSentences.length === 0) {
                 sentenceDisplayEl.classList.add('phase-question');
-                sentenceTextEl.textContent = currentTab === 'marked' ? 'Nenhuma frase marcada neste deck' : 'Nenhuma frase carregada neste deck';
-                translationTextEl.textContent = '';
-                translationTextEl.style.display = 'none';
+                sentenceTextEl.textContent = currentTab === 'marked'
+                    ? 'Nenhuma frase marcada neste deck'
+                    : 'Este deck ainda não possui frases';
+                translationTextEl.textContent = currentTab === 'marked'
+                    ? ''
+                    : 'Importe um arquivo, cole texto estruturado ou edite o deck atual.';
+                translationTextEl.style.display = currentTab === 'marked' ? 'none' : 'block';
                 counterEl.textContent = '0 / 0';
                 markBtn.innerHTML = '<i class="fas fa-bookmark"></i> Marcar';
                 sideIndicatorEl.classList.add('hidden');
@@ -3553,121 +3720,6 @@ body{
             }, 3200);
         }
 
-        function getPdfPromptTemplate() {
-            return `Quero que você reorganize o conteúdo abaixo em cartões de estudo para o app Revisa, que importa PDFs estruturados em FRENTE/VERSO.
-
-REGRAS OBRIGATÓRIAS:
-1. A saída deve ser apenas texto simples.
-2. Não use markdown.
-3. Não use comentários, observações ou explicações extras.
-4. Cada cartão deve ter exatamente este formato:
-
-FRENTE:
-[conteúdo da frente]
-
-VERSO:
-[conteúdo do verso]
-
-===CARD===
-
-5. Use FRENTE para pergunta, termo, frase, conceito ou trecho principal.
-6. Use VERSO para resposta, tradução, explicação, definição ou complemento.
-7. Não coloque nada antes do primeiro FRENTE.
-8. Não coloque nada depois do último VERSO.
-9. Não misture dois cartões no mesmo bloco.
-10. Preserve listas, exemplos e quebras de linha quando isso ajudar no estudo.
-11. Se houver idioma original e tradução, mantenha o original na FRENTE e a tradução no VERSO.
-12. A saída precisa ficar pronta para eu colar no app ou exportar como PDF texto selecionável.
-
-CONTEÚDO PARA FORMATAR:
-[cole aqui o texto bruto extraído do PDF]`;
-        }
-
-        function getPdfFormatExample() {
-            return `FRENTE:
-How are you?
-
-VERSO:
-Como você está?
-
-===CARD===
-
-FRENTE:
-What does "although" mean?
-
-VERSO:
-Significa "embora".
-
-===CARD===
-
-FRENTE:
-Explique o que é fotossíntese.
-
-VERSO:
-Processo pelo qual plantas convertem luz, água e dióxido de carbono em glicose e oxigênio.`;
-        }
-
-        function getCombinedPromptWithRawText() {
-            const rawText = lastPdfRawText && lastPdfRawText.trim()
-                ? lastPdfRawText
-                : '[Sem texto bruto disponível. Carregue um PDF primeiro.]';
-
-            return getPdfPromptTemplate().replace('[cole aqui o texto bruto extraído do PDF]', rawText);
-        }
-
-        function populatePdfPromptTab() {
-            const promptEl = document.getElementById('pdfPromptTextarea');
-            const exampleEl = document.getElementById('pdfFormatExampleTextarea');
-
-            if (promptEl) promptEl.value = getPdfPromptTemplate();
-            if (exampleEl) exampleEl.value = getPdfFormatExample();
-        }
-
-        function updateLastPdfRawTextArea() {
-            const area = document.getElementById('lastPdfRawTextArea');
-            if (!area) return;
-
-            area.value = lastPdfRawText && lastPdfRawText.trim()
-                ? lastPdfRawText
-                : 'O texto bruto extraído do último PDF aparecerá aqui.';
-            saveAppState();
-        }
-
-        async function copyTextToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                showNotification('Texto copiado!', 'success');
-            } catch (error) {
-                const temp = document.createElement('textarea');
-                temp.value = text;
-                document.body.appendChild(temp);
-                temp.select();
-                document.execCommand('copy');
-                document.body.removeChild(temp);
-                showNotification('Texto copiado!', 'success');
-            }
-        }
-
-        function copyPdfPrompt() {
-            copyTextToClipboard(getPdfPromptTemplate());
-        }
-
-        function copyCombinedPromptWithRawText() {
-            copyTextToClipboard(getCombinedPromptWithRawText());
-        }
-
-        function copyPdfFormatExample() {
-            copyTextToClipboard(getPdfFormatExample());
-        }
-
-        function copyLastPdfRawText() {
-            if (!lastPdfRawText || !lastPdfRawText.trim()) {
-                showNotification('Ainda não há texto bruto de PDF para copiar.', 'info');
-                return;
-            }
-            copyTextToClipboard(lastPdfRawText);
-        }
-
         function downloadFile(filename, content, mimeType = 'text/plain;charset=utf-8') {
             const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
@@ -3686,9 +3738,7 @@ Processo pelo qual plantas convertem luz, água e dióxido de carbono em glicose
                 version: 9,
                 exportedAt: new Date().toISOString(),
                 settings: getSerializableSettings(),
-                data: {
-                    decks
-                }
+                data: { decks }
             };
 
             const filename = `revisa-backup-${new Date().toISOString().slice(0,10)}.json`;
