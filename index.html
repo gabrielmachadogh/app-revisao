@@ -3,808 +3,760 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#4F46E5">
+    <meta name="theme-color" content="#6366F1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Language Learning">
-    <title>Language Learning App</title>
-    
+    <meta name="apple-mobile-web-app-title" content="Revisa">
+    <title>Revisa — Aprendizado & Revisão</title>
+
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-title" content="TTS Pro">
-    
-    <meta name="description" content="Aplicativo de aprendizado de idiomas com pronúncia nativa e text-to-speech avançado">
-    <meta name="keywords" content="aprendizado, idiomas, TTS, text-to-speech, pronúncia, nativo">
-    <meta name="author" content="Language Learning TTS Pro">
-    
-    <meta property="og:title" content="Language Learning TTS Pro">
-    <meta property="og:description" content="Aprenda idiomas com pronúncia nativa">
+
+    <meta name="description" content="Revisa: app leve de aprendizado e revisão com decks, leitura por voz, PDF inteligente e importação estruturada.">
+    <meta name="keywords" content="revisão, aprendizado, flashcards, decks, TTS, idiomas, estudo, PDF">
+    <meta name="author" content="Revisa">
+
+    <meta property="og:title" content="Revisa — Aprendizado & Revisão">
+    <meta property="og:description" content="Aprenda e revise com decks, voz e importação inteligente.">
     <meta property="og:type" content="website">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/franc@6.1.0/dist/franc.min.js"></script>
-    
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
-    
+
     <style>
-/* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f7f6;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    box-sizing: border-box;
+:root{
+    --bg-a:#eef2ff;
+    --bg-b:#f8fafc;
+    --surface:rgba(255,255,255,.78);
+    --surface-strong:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:rgba(148,163,184,.22);
+    --primary:#6366f1;
+    --primary-2:#8b5cf6;
+    --cyan:#06b6d4;
+    --success:#10b981;
+    --success-2:#34d399;
+    --warning:#f59e0b;
+    --danger:#ef4444;
+    --neutral:#64748b;
+    --neutral-2:#475569;
+    --shadow:0 18px 48px rgba(15,23,42,.12);
+    --shadow-soft:0 10px 24px rgba(15,23,42,.08);
+    --radius:20px;
+    --radius-md:16px;
+    --radius-sm:12px;
 }
 
-#app-container {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 520px;
-    margin: 20px;
-    overflow: hidden;
-    position: relative;
-    min-height: 640px;
-    display: flex;
-    flex-direction: column;
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+    font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    margin:0;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    background:
+        radial-gradient(circle at top left, rgba(99,102,241,.14), transparent 32%),
+        radial-gradient(circle at top right, rgba(6,182,212,.10), transparent 28%),
+        linear-gradient(180deg, var(--bg-a), var(--bg-b));
+    padding:18px;
 }
 
-#main-screen {
-    padding: 20px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+button,input,select,textarea{font:inherit}
+
+#app-container{
+    width:100%;
+    max-width:540px;
+    min-height:650px;
+    background:var(--surface);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.55);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    position:relative;
+}
+
+#main-screen{
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    min-height:650px;
 }
 
 /* Header */
-#header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-    gap: 10px;
+#header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:16px;
 }
 
-#header h1 {
-    font-size: 1.5em;
-    color: #2c3e50;
-    margin: 0;
-    line-height: 1.2;
+#brandBlock{min-width:0}
+#header h1{
+    margin:0;
+    font-size:1.65em;
+    line-height:1.05;
+    color:var(--text);
+    font-weight:800;
+    letter-spacing:-0.03em;
+}
+#brandSubtitle{
+    margin-top:6px;
+    font-size:.9em;
+    color:var(--muted);
+    line-height:1.35;
 }
 
-.header-buttons {
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-    flex-wrap: wrap;
+.header-buttons{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    flex-shrink:0;
 }
 
-.action-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.action-button,
+.nav-button,
+.play-pause-button{
+    border:none;
+    color:#fff;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    box-shadow:var(--shadow-soft);
 }
 
-.action-button:hover {
-    background-color: #45a049;
+.action-button:hover,
+.nav-button:hover,
+.play-pause-button:hover,
+.action-button-bottom:hover,
+.mini-btn:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.02);
+}
+
+.action-button{
+    padding:10px 14px;
+    border-radius:14px;
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+
+.nav-button{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    font-size:1.05em;
+    background:linear-gradient(135deg, var(--primary), var(--cyan));
+}
+
+.play-pause-button{
+    width:74px;
+    height:74px;
+    border-radius:50%;
+    font-size:1.55em;
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    box-shadow:0 14px 32px rgba(99,102,241,.28);
 }
 
 /* Deck bar */
-#deckBar {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 16px;
+#deckBar,
+.helper-card,
+.overlay-content,
+.deck-item{
+    background:rgba(255,255,255,.74);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow-soft);
 }
 
-.deck-bar-top {
-    display: flex;
-    gap: 10px;
-    align-items: end;
+#deckBar{
+    border-radius:18px;
+    padding:14px;
+    margin-bottom:18px;
 }
 
-.deck-select-wrap {
-    flex: 1;
+.deck-bar-top{
+    display:flex;
+    gap:10px;
+    align-items:end;
 }
 
-.deck-select-wrap label {
-    display: block;
-    font-size: 0.85em;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 6px;
+.deck-select-wrap{flex:1}
+
+.deck-select-wrap label{
+    display:block;
+    margin-bottom:7px;
+    font-size:.84em;
+    color:var(--muted);
+    font-weight:700;
+    letter-spacing:.01em;
 }
 
-#deckSelector {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-    background: white;
-    box-sizing: border-box;
+#deckSelector,
+#uploadTargetDeckSelect,
+#uploadImportModeSelect,
+#pasteTargetDeckSelect,
+#pasteImportModeSelect,
+#questionVoiceSelect,
+#answerVoiceSelect{
+    width:100%;
+    padding:11px 12px;
+    border-radius:12px;
+    border:1px solid rgba(148,163,184,.28);
+    background:rgba(255,255,255,.88);
+    color:var(--text);
 }
 
-#currentDeckMeta {
-    margin-top: 8px;
-    font-size: 0.88em;
-    color: #6b7280;
-    line-height: 1.4;
+#currentDeckMeta{
+    margin-top:10px;
+    font-size:.88em;
+    color:var(--muted);
+    line-height:1.45;
 }
 
 /* Tabs */
-#tabsContainer {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-    flex-wrap: wrap;
+#tabsContainer{
+    display:flex;
+    gap:10px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
 }
 
-.tab-btn {
-    background: none;
-    border: none;
-    padding: 10px 12px;
-    cursor: pointer;
-    font-size: 0.96em;
-    color: #999;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-    font-weight: 500;
+.tab-btn{
+    border:none;
+    background:rgba(255,255,255,.62);
+    border:1px solid var(--border);
+    color:var(--muted);
+    padding:10px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    font-size:.92em;
+    font-weight:700;
+    transition:all .2s ease;
+    box-shadow:0 6px 14px rgba(15,23,42,.04);
 }
 
-.tab-btn.active {
-    color: #3498db;
-    border-bottom-color: #3498db;
+.tab-btn.active{
+    color:#fff;
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    border-color:transparent;
 }
 
-.tab-btn:hover {
-    color: #3498db;
-}
+.tab-btn:hover{transform:translateY(-1px)}
 
 /* Panels */
-#studyPanel {
-    display: block;
+#studyPanel{display:block}
+#pdfPromptPanel{display:none}
+
+/* Main card */
+#sentence-display{
+    position:relative;
+    border-radius:22px;
+    padding:28px 20px 22px;
+    margin-bottom:18px;
+    min-height:138px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow-soft);
+    transition:background .25s ease,border-color .25s ease,box-shadow .25s ease;
 }
 
-#pdfPromptPanel {
-    display: none;
-}
-
-/* Sentence Display */
-#sentence-display {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 24px 20px 20px 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    min-height: 120px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 2px solid #dfe7ef;
-    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-    position: relative;
-}
-
-#sentence-display.phase-question {
-    background: linear-gradient(180deg, #f9fbfd 0%, #f4f8fb 100%);
-    border-color: #d6e9f8;
+#sentence-display.phase-question{
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,249,255,.96));
+    border-color:rgba(99,102,241,.18);
     box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.05),
-        0 0 0 3px rgba(52, 152, 219, 0.06);
+        0 14px 30px rgba(99,102,241,.08),
+        inset 0 1px 0 rgba(255,255,255,.75);
 }
 
-#sentence-display.phase-answer {
-    background: linear-gradient(180deg, #f3fcf6 0%, #ecfaf1 100%);
-    border-color: #bfe8cf;
+#sentence-display.phase-answer{
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.92), rgba(241,252,247,.96));
+    border-color:rgba(16,185,129,.2);
     box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.05),
-        0 0 0 3px rgba(46, 204, 113, 0.10);
+        0 14px 30px rgba(16,185,129,.08),
+        inset 0 1px 0 rgba(255,255,255,.75);
 }
 
-.side-indicator {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 0.72em;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 4px 8px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    color: #64748b;
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(2px);
-    line-height: 1;
-    user-select: none;
-    opacity: 0.92;
+.side-indicator{
+    position:absolute;
+    top:12px;
+    right:12px;
+    font-size:.7em;
+    font-weight:800;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:5px 9px;
+    border-radius:999px;
+    line-height:1;
+    border:1px solid transparent;
+    opacity:.95;
+    user-select:none;
 }
 
-.side-indicator.question {
-    border-color: #d6e9f8;
-    background: rgba(240, 248, 255, 0.82);
-    color: #5f7f96;
+.side-indicator.question{
+    color:#61758a;
+    background:rgba(244,247,255,.92);
+    border-color:rgba(99,102,241,.16);
 }
 
-.side-indicator.answer {
-    border-color: #bfe8cf;
-    background: rgba(240, 253, 244, 0.88);
-    color: #5d836a;
+.side-indicator.answer{
+    color:#5f7b69;
+    background:rgba(240,252,245,.94);
+    border-color:rgba(16,185,129,.18);
 }
 
-.side-indicator.hidden {
-    display: none;
+.side-indicator.hidden{display:none}
+
+.sentence-text{
+    font-size:1.42em;
+    line-height:1.42;
+    font-weight:700;
+    margin:4px 0;
+    color:var(--text);
+    white-space:pre-line;
+    letter-spacing:-0.01em;
 }
 
-.sentence-text {
-    font-size: 1.4em;
-    margin: 5px 0;
-    line-height: 1.4;
-    white-space: pre-line;
-    color: #333;
-}
-
-.translation-text {
-    color: #7f8c8d;
-    font-size: 1.08em;
-    display: none;
-    margin-top: 10px;
-    white-space: pre-line;
+.translation-text{
+    display:none;
+    margin-top:12px;
+    color:var(--muted);
+    font-size:1.03em;
+    line-height:1.45;
+    white-space:pre-line;
 }
 
 /* Controls */
-#controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
+#controls{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:15px;
+    margin-bottom:20px;
 }
 
-.nav-button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+#play-pause-container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
 }
 
-.nav-button:hover {
-    background-color: #2980b9;
+#sentence-counter{
+    font-size:.9em;
+    color:var(--muted);
 }
 
-#play-pause-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* Bottom actions */
+#action-controls{
+    display:flex;
+    justify-content:space-around;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:12px 0 0;
+    margin-top:auto;
 }
 
-.play-pause-button {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 72px;
-    height: 72px;
-    font-size: 1.5em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 5px;
+.action-button-bottom,
+.mini-btn{
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    transition:transform .18s ease, filter .18s ease, box-shadow .18s ease;
 }
 
-.play-pause-button:hover {
-    background-color: #c0392b;
+.action-button-bottom{
+    padding:10px 14px;
+    background:linear-gradient(135deg, var(--neutral), var(--neutral-2));
+    color:#fff;
+    box-shadow:var(--shadow-soft);
+    text-align:center;
 }
 
-#sentence-counter {
-    font-size: 0.9em;
-    color: #7f8c8d;
+.small-button{
+    padding:9px 12px;
+    font-size:.86em;
 }
 
-/* Action Controls */
-#action-controls {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    border-top: 1px solid #eee;
-    background-color: #fdfdfd;
-    position: sticky;
-    bottom: 0;
-    width: 100%;
-    box-sizing: border-box;
-    gap: 8px;
-    flex-wrap: wrap;
+.primary-button{
+    background:linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+    color:#fff !important;
 }
 
-.action-button-bottom {
-    background-color: #95a5a6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    text-align: center;
+.success-button{
+    background:linear-gradient(135deg, var(--success), var(--success-2)) !important;
+    color:#fff !important;
 }
 
-.action-button-bottom:hover {
-    background-color: #7f8c8d;
+.warning-button{
+    background:linear-gradient(135deg, var(--warning), #fbbf24) !important;
+    color:#fff !important;
 }
 
-.small-button {
-    padding: 9px 12px;
-    font-size: 0.86em;
+.danger-button{
+    background:linear-gradient(135deg, var(--danger), #f87171) !important;
+    color:#fff !important;
 }
 
-.danger-button {
-    background-color: #e74c3c !important;
+/* Helper cards */
+.helper-card{
+    border-radius:18px;
+    padding:15px;
+    margin-bottom:14px;
 }
 
-.danger-button:hover {
-    background-color: #c0392b !important;
+.helper-card h3{
+    margin:0 0 10px;
+    font-size:1.02em;
+    color:var(--text);
 }
 
-.primary-button {
-    background-color: #3498db !important;
-}
-
-.primary-button:hover {
-    background-color: #2980b9 !important;
-}
-
-.warning-button {
-    background-color: #f39c12 !important;
-}
-
-.warning-button:hover {
-    background-color: #e67e22 !important;
-}
-
-.success-button {
-    background-color: #2ecc71 !important;
-}
-
-.success-button:hover {
-    background-color: #27ae60 !important;
-}
-
-/* Helper / Prompt cards */
-.helper-card {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
-}
-
-.helper-card h3 {
-    margin: 0 0 10px;
-    color: #2c3e50;
-    font-size: 1.05em;
-}
-
-.helper-note {
-    font-size: 0.92em;
-    color: #666;
-    line-height: 1.5;
-    margin-bottom: 12px;
+.helper-note{
+    font-size:.92em;
+    color:var(--muted);
+    line-height:1.55;
+    margin-bottom:12px;
 }
 
 .helper-card textarea,
-.helper-card select,
-.helper-card input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 0.92em;
-    background: #fff;
-    color: #333;
-    margin-bottom: 10px;
+.helper-card input[type="text"],
+.helper-card select{
+    width:100%;
+    border:1px solid rgba(148,163,184,.28);
+    background:rgba(255,255,255,.9);
+    border-radius:14px;
+    padding:12px;
+    color:var(--text);
+    margin-bottom:10px;
 }
 
-.helper-card textarea {
-    min-height: 180px;
-    resize: vertical;
-    font-family: Consolas, Monaco, monospace;
+.helper-card textarea{
+    min-height:180px;
+    resize:vertical;
+    font-family:Consolas, Monaco, monospace;
+    font-size:.92em;
 }
 
-.helper-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+.helper-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
 }
 
-.helper-actions .action-button-bottom {
-    flex: 1;
-    min-width: 150px;
+.helper-actions .action-button-bottom{
+    flex:1;
+    min-width:150px;
 }
 
-.helper-badge {
-    display: inline-block;
-    background: #eef2ff;
-    color: #4f46e5;
-    border-radius: 999px;
-    padding: 6px 10px;
-    font-size: 0.82em;
-    font-weight: 600;
-    margin-bottom: 10px;
+.helper-badge{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:.8em;
+    font-weight:700;
+    color:#5b5bd6;
+    background:rgba(99,102,241,.1);
+    border:1px solid rgba(99,102,241,.12);
 }
 
 /* Overlays */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+.overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(15,23,42,.35);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .25s ease, visibility .25s ease;
+    padding:14px;
 }
 
-.overlay.active {
-    opacity: 1;
-    visibility: visible;
+.overlay.active{
+    opacity:1;
+    visibility:visible;
 }
 
-.overlay-content {
-    background-color: #ffffff;
-    padding: 24px;
-    border-radius: 10px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-    width: 92%;
-    max-width: 430px;
-    max-height: 86vh;
-    overflow-y: auto;
-    position: relative;
+.overlay-content{
+    width:100%;
+    max-width:440px;
+    max-height:86vh;
+    overflow-y:auto;
+    border-radius:22px;
+    padding:22px;
 }
 
-.overlay-content h2 {
-    margin-top: 0;
-    color: #2c3e50;
-    font-size: 1.45em;
-    margin-bottom: 20px;
+.overlay-content h2{
+    margin:0 0 18px;
+    font-size:1.35em;
+    color:var(--text);
 }
 
-.overlay-content label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
+.overlay-content label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:700;
+    color:var(--text);
 }
 
 .overlay-content input[type="range"],
 .overlay-content input[type="number"],
 .overlay-content input[type="text"],
 .overlay-content textarea,
-.overlay-content select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
-    box-sizing: border-box;
-    background-color: #fff;
+.overlay-content select{
+    width:100%;
+    padding:10px 12px;
+    margin-bottom:14px;
+    border:1px solid rgba(148,163,184,.28);
+    border-radius:12px;
+    background:rgba(255,255,255,.9);
+    color:var(--text);
 }
 
-.overlay-content input[type="range"] {
-    width: 100%;
-    -webkit-appearance: none;
-    height: 8px;
-    background: #ddd;
-    outline: none;
-    opacity: 0.8;
-    transition: opacity .2s;
+.overlay-content input[type="range"]{
+    padding:0;
+    height:8px;
+    appearance:none;
+    -webkit-appearance:none;
+    background:linear-gradient(90deg, rgba(99,102,241,.24), rgba(6,182,212,.24));
+    outline:none;
 }
 
-.overlay-content input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #3498db;
-    cursor: pointer;
+.overlay-content input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--primary), var(--cyan));
+    border:none;
+    box-shadow:0 4px 10px rgba(99,102,241,.3);
+    cursor:pointer;
 }
 
-.overlay-content input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #3498db;
-    cursor: pointer;
+.overlay-content input[type="range"]::-moz-range-thumb{
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--primary), var(--cyan));
+    border:none;
+    cursor:pointer;
 }
 
-#language-selector {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+#language-selector{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:18px;
 }
 
-#language-selector button {
-    background-color: #ecf0f1;
-    border: 2px solid #bdc3c7;
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.9em;
+#language-selector button{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:rgba(255,255,255,.86);
+    color:var(--text);
+    padding:8px 12px;
+    cursor:pointer;
+    transition:all .2s ease;
 }
 
-#language-selector button.active {
-    background-color: #3498db;
-    border-color: #2980b9;
-    color: white;
+#language-selector button.active{
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    color:#fff;
+    border-color:transparent;
 }
 
-#language-selector button:hover:not(.active) {
-    background-color: #dbe4e6;
-    border-color: #95a5a6;
+.voice-collapsible{
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+    background:rgba(255,255,255,.68);
+    margin-bottom:15px;
 }
 
-/* Voice collapsible */
-.voice-collapsible {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    background-color: #fafafa;
-    overflow: hidden;
+.voice-collapsible summary{
+    cursor:pointer;
+    padding:12px 14px;
+    font-weight:700;
+    color:var(--text);
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
 }
 
-.voice-collapsible summary {
-    cursor: pointer;
-    padding: 12px 15px;
-    font-weight: 600;
-    color: #2c3e50;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.voice-collapsible summary::-webkit-details-marker{display:none}
+
+.voice-collapsible summary::after{
+    content:'\f078';
+    font-family:"Font Awesome 6 Free";
+    font-weight:900;
+    transition:transform .25s ease;
+    color:var(--muted);
 }
 
-.voice-collapsible summary::-webkit-details-marker {
-    display: none;
+.voice-collapsible[open] summary::after{
+    transform:rotate(180deg);
 }
 
-.voice-collapsible summary::after {
-    content: '\f078';
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    transition: transform 0.3s ease;
+.voice-content{
+    padding:0 14px 14px;
 }
 
-.voice-collapsible[open] summary::after {
-    transform: rotate(180deg);
+.voice-meta{
+    font-size:.84em;
+    color:var(--muted);
+    margin-bottom:12px;
 }
 
-.voice-content {
-    padding: 0 15px 15px;
+/* Deck list */
+#deckManagerList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
 }
 
-.voice-meta {
-    font-size: 0.85em;
-    color: #666;
-    margin-bottom: 12px;
+.deck-item{
+    border-radius:16px;
+    padding:12px;
 }
 
-/* Deck manager */
-#deckManagerList {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.deck-item.current{
+    border-color:rgba(99,102,241,.22);
+    background:rgba(244,246,255,.92);
 }
 
-.deck-item {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 12px;
-    background: #fafafa;
+.deck-item-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
 }
 
-.deck-item.current {
-    border-color: #3498db;
-    background: #eef7ff;
+.deck-item-name{
+    font-weight:800;
+    color:var(--text);
+    line-height:1.25;
 }
 
-.deck-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
+.deck-item-stats{
+    font-size:.85em;
+    color:var(--muted);
+    margin-top:5px;
 }
 
-.deck-item-name {
-    font-weight: 700;
-    color: #2c3e50;
-    line-height: 1.3;
+.deck-item-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:12px;
 }
 
-.deck-item-stats {
-    font-size: 0.86em;
-    color: #6b7280;
-    margin-top: 5px;
+.mini-btn{
+    padding:8px 10px;
+    color:#fff;
+    font-size:.82em;
+    box-shadow:var(--shadow-soft);
 }
 
-.deck-item-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 12px;
+/* Editor controls */
+.editor-controls{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:10px;
 }
 
-.mini-btn {
-    border: none;
-    border-radius: 8px;
-    padding: 8px 10px;
-    color: white;
-    cursor: pointer;
-    font-size: 0.82em;
+/* Notifications */
+#notification-area{
+    position:fixed;
+    left:50%;
+    bottom:20px;
+    transform:translateX(-50%);
+    z-index:1001;
+    width:calc(100% - 40px);
+    max-width:420px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
 }
 
-/* Editor */
-.editor-controls {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-    gap: 10px;
-    flex-wrap: wrap;
+.notification{
+    opacity:0;
+    margin-bottom:10px;
+    padding:11px 16px;
+    border-radius:14px;
+    color:#fff;
+    box-shadow:var(--shadow-soft);
+    text-align:center;
+    max-width:100%;
+    width:fit-content;
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
 }
 
-/* Notification Area */
-#notification-area {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: calc(100% - 40px);
-    max-width: 420px;
+.notification.show{opacity:1}
+.notification.success{background:rgba(16,185,129,.92)}
+.notification.error{background:rgba(239,68,68,.92)}
+.notification.info{background:rgba(99,102,241,.92)}
+
+/* Loading */
+#loading-overlay{
+    background:rgba(255,255,255,.76);
+    color:var(--text);
+    flex-direction:column;
 }
 
-.notification {
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-    width: fit-content;
-    max-width: 100%;
-    text-align: center;
+.loading-spinner{
+    width:40px;
+    height:40px;
+    border:4px solid rgba(99,102,241,.15);
+    border-top:4px solid var(--primary);
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:14px;
 }
 
-.notification.show {
-    opacity: 1;
+@keyframes spin{
+    from{transform:rotate(0deg)}
+    to{transform:rotate(360deg)}
 }
 
-.notification.success {
-    background-color: #2ecc71;
-}
-
-.notification.error {
-    background-color: #e74c3c;
-}
-
-.notification.info {
-    background-color: #3498db;
-}
-
-/* Loading Overlay */
-#loading-overlay {
-    background-color: rgba(255, 255, 255, 0.85);
-    color: #333;
-    font-size: 1.2em;
-    flex-direction: column;
-}
-
-.loading-spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@media (max-width: 600px) {
-    #header h1 {
-        font-size: 1.2em;
-    }
-
-    .action-button {
-        padding: 8px 12px;
-    }
-
-    .sentence-text {
-        font-size: 1.2em;
-    }
-
-    .play-pause-button {
-        width: 62px;
-        height: 62px;
-    }
-
-    .nav-button {
-        width: 42px;
-        height: 42px;
-    }
-
-    .action-button-bottom {
-        padding: 8px 10px;
-        font-size: 0.82em;
-    }
-
-    .deck-bar-top {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .side-indicator {
-        font-size: 0.68em;
-        top: 8px;
-        right: 8px;
-    }
+@media (max-width:600px){
+    body{padding:12px}
+    #main-screen{padding:16px}
+    #header{align-items:flex-start}
+    #header h1{font-size:1.4em}
+    #brandSubtitle{font-size:.85em}
+    .deck-bar-top{flex-direction:column;align-items:stretch}
+    .sentence-text{font-size:1.22em}
+    .play-pause-button{width:64px;height:64px}
+    .nav-button{width:42px;height:42px}
+    .action-button,.action-button-bottom{font-size:.84em}
+    .side-indicator{top:10px;right:10px;font-size:.66em}
 }
     </style>
 </head>
@@ -812,7 +764,10 @@ body {
     <div id="app-container">
         <div id="main-screen">
             <div id="header">
-                <h1><i class="fas fa-volume-up"></i> Language Learning TTS Pro</h1>
+                <div id="brandBlock">
+                    <h1><i class="fas fa-brain"></i> Revisa</h1>
+                    <div id="brandSubtitle">Aprendizado e revisão com decks, voz e importação inteligente</div>
+                </div>
                 <div class="header-buttons">
                     <button class="action-button" title="Carregar Arquivo" onclick="showUploadOptions()">
                         <i class="fas fa-folder-open"></i>
@@ -861,7 +816,7 @@ body {
                     <div class="translation-text"></div>
                 </div>
 
-                <div id="sentence-counter" style="text-align: center; margin-bottom: 20px;">0 / 0</div>
+                <div id="sentence-counter" style="text-align:center; margin-bottom:20px;">0 / 0</div>
 
                 <div id="controls">
                     <button class="nav-button" title="Anterior" onclick="showPreviousSentence()">
@@ -950,10 +905,10 @@ body {
                         Cole aqui o texto que a IA devolveu no formato FRENTE/VERSO e escolha em qual deck ele deve entrar.
                     </div>
 
-                    <label for="pasteTargetDeckSelect" style="font-weight: 600; margin-bottom: 6px; display: block;">Deck de destino</label>
+                    <label for="pasteTargetDeckSelect" style="font-weight:700; margin-bottom:6px; display:block;">Deck de destino</label>
                     <select id="pasteTargetDeckSelect"></select>
 
-                    <label for="pasteImportModeSelect" style="font-weight: 600; margin-bottom: 6px; display: block;">Modo de importação</label>
+                    <label for="pasteImportModeSelect" style="font-weight:700; margin-bottom:6px; display:block;">Modo de importação</label>
                     <select id="pasteImportModeSelect">
                         <option value="replace">Substituir conteúdo do deck</option>
                         <option value="append">Adicionar ao deck</option>
@@ -974,7 +929,7 @@ body {
         </div>
     </div>
 
-    <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" style="display: none;">
+    <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" style="display:none;">
 
     <div id="uploadOptionsOverlay" class="overlay">
         <div class="overlay-content">
@@ -989,10 +944,10 @@ body {
                 <option value="append">Adicionar ao deck</option>
             </select>
 
-            <button class="action-button-bottom primary-button" style="width: 100%; margin-bottom: 10px;" onclick="selectLocalFile()">
+            <button class="action-button-bottom primary-button" style="width:100%; margin-bottom:10px;" onclick="selectLocalFile()">
                 <i class="fas fa-laptop"></i> Arquivo Local
             </button>
-            <button class="action-button-bottom" style="width: 100%;" onclick="selectFromGoogleDrive()">
+            <button class="action-button-bottom" style="width:100%;" onclick="selectFromGoogleDrive()">
                 <i class="fab fa-google-drive"></i> Google Drive
             </button>
         </div>
@@ -1003,21 +958,21 @@ body {
             <h2><i class="fas fa-cog"></i> Configurações</h2>
             
             <label>Modo de Reprodução:</label>
-            <div style="margin-bottom: 20px; display: flex; gap: 8px;">
-                <button id="modeInputBtn" class="action-button-bottom primary-button" style="flex: 1;" onclick="setMode('input')">
+            <div style="margin-bottom:20px; display:flex; gap:8px;">
+                <button id="modeInputBtn" class="action-button-bottom primary-button" style="flex:1;" onclick="setMode('input')">
                     <i class="fas fa-microphone"></i> Input (A → B)
                 </button>
-                <button id="modeOutputBtn" class="action-button-bottom" style="flex: 1;" onclick="setMode('output')">
+                <button id="modeOutputBtn" class="action-button-bottom" style="flex:1;" onclick="setMode('output')">
                     <i class="fas fa-volume-up"></i> Output (B → A)
                 </button>
             </div>
 
             <label>Falar Resposta:</label>
-            <div style="margin-bottom: 20px; display: flex; gap: 8px;">
-                <button id="speakAnswerOnBtn" class="action-button-bottom" style="flex: 1;" onclick="setSpeakAnswer(true)">
+            <div style="margin-bottom:20px; display:flex; gap:8px;">
+                <button id="speakAnswerOnBtn" class="action-button-bottom" style="flex:1;" onclick="setSpeakAnswer(true)">
                     <i class="fas fa-toggle-on"></i> Ligado
                 </button>
-                <button id="speakAnswerOffBtn" class="action-button-bottom primary-button" style="flex: 1;" onclick="setSpeakAnswer(false)">
+                <button id="speakAnswerOffBtn" class="action-button-bottom primary-button" style="flex:1;" onclick="setSpeakAnswer(false)">
                     <i class="fas fa-toggle-off"></i> Desligado
                 </button>
             </div>
@@ -1027,7 +982,7 @@ body {
 
             <label>Repetir pergunta:</label>
             <input type="number" id="questionRepeatInput" min="1" max="10" value="1" oninput="updateQuestionRepeat()">
-            <div id="questionRepeatDisplay" style="text-align: center; margin-bottom: 15px;">
+            <div id="questionRepeatDisplay" style="text-align:center; margin-bottom:15px;">
                 Pergunta será falada 1 vez
             </div>
 
@@ -1045,7 +1000,7 @@ body {
                 <div class="voice-content">
                     <div id="voicesLoadedInfo" class="voice-meta">Carregando vozes...</div>
 
-                    <button class="action-button-bottom primary-button" style="width: 100%; margin-bottom: 12px;" onclick="loadVoices()">
+                    <button class="action-button-bottom primary-button" style="width:100%; margin-bottom:12px;" onclick="loadVoices()">
                         <i class="fas fa-rotate"></i> Atualizar lista de vozes
                     </button>
 
@@ -1062,19 +1017,19 @@ body {
             </details>
 
             <label>Loop Personalizado:</label>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                    <label style="font-size: 0.9em;">Início:</label>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <div style="flex:1;">
+                    <label style="font-size:.9em;">Início:</label>
                     <input type="number" id="loopStart" min="0" value="0" oninput="updateLoopRange()">
                 </div>
-                <div style="flex: 1;">
-                    <label style="font-size: 0.9em;">Fim:</label>
+                <div style="flex:1;">
+                    <label style="font-size:.9em;">Fim:</label>
                     <input type="number" id="loopEnd" min="0" value="0" oninput="updateLoopRange()">
                 </div>
             </div>
-            <div id="loopRangeDisplay" style="text-align: center; margin-bottom: 15px;">Loop: 1 até 1</div>
+            <div id="loopRangeDisplay" style="text-align:center; margin-bottom:15px;">Loop: 1 até 1</div>
 
-            <button id="save-settings-button" class="action-button-bottom success-button" style="width: 100%;" onclick="saveSettings()">
+            <button id="save-settings-button" class="action-button-bottom success-button" style="width:100%;" onclick="saveSettings()">
                 <i class="fas fa-save"></i> Salvar Configurações
             </button>
         </div>
@@ -1086,7 +1041,7 @@ body {
 
             <label for="newDeckNameInput">Novo deck</label>
             <input type="text" id="newDeckNameInput" placeholder="Digite o nome do novo deck">
-            <button class="action-button-bottom success-button" style="width: 100%; margin-bottom: 15px;" onclick="createDeckFromInput()">
+            <button class="action-button-bottom success-button" style="width:100%; margin-bottom:15px;" onclick="createDeckFromInput()">
                 <i class="fas fa-plus"></i> Criar Deck
             </button>
 
@@ -1103,17 +1058,17 @@ body {
     <div id="editorOverlay" class="overlay">
         <div class="overlay-content">
             <h2 id="editorTitle"><i class="fas fa-edit"></i> Editor do Deck</h2>
-            <div style="margin-bottom: 15px;">
-                <button class="action-button-bottom success-button" style="width: 100%; margin-bottom: 10px;" onclick="addNewRow()">
+            <div style="margin-bottom:15px;">
+                <button class="action-button-bottom success-button" style="width:100%; margin-bottom:10px;" onclick="addNewRow()">
                     <i class="fas fa-plus"></i> Adicionar Linha
                 </button>
             </div>
-            <div id="editorTableContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                <table style="width: 100%; border-collapse: collapse;">
+            <div id="editorTableContainer" style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid rgba(148,163,184,.22); border-radius:14px;">
+                <table style="width:100%; border-collapse:collapse;">
                     <thead>
-                        <tr style="background-color: #f0f0f0;">
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Original (A)</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tradução / Resposta (B)</th>
+                        <tr style="background-color:rgba(248,250,252,.9);">
+                            <th style="padding:10px; border:1px solid rgba(148,163,184,.18); text-align:left;">Original (A)</th>
+                            <th style="padding:10px; border:1px solid rgba(148,163,184,.18); text-align:left;">Tradução / Resposta (B)</th>
                         </tr>
                     </thead>
                     <tbody id="editorTableBody"></tbody>
@@ -1135,7 +1090,7 @@ body {
             <h2><i class="fas fa-search"></i> Ir à Frase</h2>
             <label for="sentenceNumberInput">Número da frase:</label>
             <input type="number" id="sentenceNumberInput" placeholder="Digite o número da frase" min="1">
-            <div id="totalSentencesInfo" style="text-align: center; margin-bottom: 15px; font-size: 0.9em; color: #666;">Total: 0 frases</div>
+            <div id="totalSentencesInfo" style="text-align:center; margin-bottom:15px; font-size:.9em; color:#666;">Total: 0 frases</div>
             <div class="editor-controls">
                 <button class="action-button-bottom success-button" onclick="goToSentenceNumber()">
                     <i class="fas fa-arrow-right"></i> Ir
@@ -1155,7 +1110,7 @@ body {
     </div>
 
     <script>
-        const STORAGE_KEY = 'languageLearningTTSProStateV5';
+        const STORAGE_KEY = 'revisaStateV6';
         const FRONT_MARKER_PATTERN = '(?:FRENTE|FRONT|PERGUNTA|QUESTION)(?:\\s*#?\\d+)?';
         const BACK_MARKER_PATTERN = '(?:VERSO|BACK|RESPOSTA|ANSWER)(?:\\s*#?\\d+)?';
         const CARD_SEPARATOR_PATTERN = '(?:===+\\s*(?:CARD|CARTAO)?\\s*===+|---+|___+|\\*\\*\\*+)';
@@ -1377,7 +1332,7 @@ body {
                 syncStateFromInputsForPersistence();
 
                 const state = {
-                    version: 5,
+                    version: 6,
                     settings: {
                         currentMode,
                         currentSpeed,
@@ -1761,12 +1716,8 @@ body {
             }
 
             if (info) {
-                info.textContent = `${availableVozesText()}`;
+                info.textContent = `${availableVoices.length} voz(es) detectada(s) no navegador/dispositivo`;
             }
-        }
-
-        function availableVozesText() {
-            return `${availableVoices.length} voz(es) detectada(s) no navegador/dispositivo`;
         }
 
         function getVoiceByURI(voiceURI) {
@@ -2671,8 +2622,12 @@ body {
 
         function setMode(mode) {
             currentMode = mode;
-            document.getElementById('modeInputBtn').style.backgroundColor = mode === 'input' ? '#3498db' : '#95a5a6';
-            document.getElementById('modeOutputBtn').style.backgroundColor = mode === 'output' ? '#3498db' : '#95a5a6';
+            document.getElementById('modeInputBtn').style.background = mode === 'input'
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+            document.getElementById('modeOutputBtn').style.background = mode === 'output'
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
             currentSpeechPhase = 'question';
             updateUI();
             saveAppState();
@@ -2684,8 +2639,12 @@ body {
 
         function setSpeakAnswer(enabled) {
             speakAnswerEnabled = enabled;
-            document.getElementById('speakAnswerOnBtn').style.backgroundColor = enabled ? '#3498db' : '#95a5a6';
-            document.getElementById('speakAnswerOffBtn').style.backgroundColor = !enabled ? '#3498db' : '#95a5a6';
+            document.getElementById('speakAnswerOnBtn').style.background = enabled
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
+            document.getElementById('speakAnswerOffBtn').style.background = !enabled
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #64748b, #475569)';
             currentSpeechPhase = 'question';
             updateUI();
             saveAppState();
@@ -2781,7 +2740,7 @@ body {
 
                 const originalCell = document.createElement('td');
                 originalCell.style.padding = '10px';
-                originalCell.style.border = '1px solid #ddd';
+                originalCell.style.border = '1px solid rgba(148,163,184,.18)';
 
                 const originalInput = document.createElement('input');
                 originalInput.type = 'text';
@@ -2789,10 +2748,11 @@ body {
                 originalInput.style.width = '100%';
                 originalInput.style.border = 'none';
                 originalInput.style.padding = '5px';
+                originalInput.style.background = 'transparent';
 
                 const translationCell = document.createElement('td');
                 translationCell.style.padding = '10px';
-                translationCell.style.border = '1px solid #ddd';
+                translationCell.style.border = '1px solid rgba(148,163,184,.18)';
 
                 const translationInput = document.createElement('input');
                 translationInput.type = 'text';
@@ -2800,6 +2760,7 @@ body {
                 translationInput.style.width = '100%';
                 translationInput.style.border = 'none';
                 translationInput.style.padding = '5px';
+                translationInput.style.background = 'transparent';
 
                 originalCell.appendChild(originalInput);
                 translationCell.appendChild(translationInput);
@@ -2979,7 +2940,7 @@ body {
         }
 
         function getPdfPromptTemplate() {
-            return `Quero que você reorganize o conteúdo abaixo em cartões de estudo para um app que importa PDFs estruturados em FRENTE/VERSO.
+            return `Quero que você reorganize o conteúdo abaixo em cartões de estudo para o app Revisa, que importa PDFs estruturados em FRENTE/VERSO.
 
 REGRAS OBRIGATÓRIAS:
 1. A saída deve ser apenas texto simples.
