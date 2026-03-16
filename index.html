@@ -843,12 +843,23 @@ body {
         // Carregar vozes disponíveis
         let availableVoices = [];
         function loadVoices() {
-            availableVoices = window.speechSynthesis.getVoices();
-            console.log('Vozes disponíveis:', availableVoices.length);
-            availableVoices.forEach((voice, index) => {
-                console.log(`${index}: ${voice.name} (${voice.lang}) - Local: ${voice.localService}`);
-            });
-        }
+
+    function setVoices() {
+        availableVoices = window.speechSynthesis.getVoices();
+
+        console.log("Vozes carregadas:", availableVoices.length);
+
+        availableVoices.forEach(v => {
+            console.log(v.name + " | " + v.lang);
+        });
+    }
+
+    setVoices();
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = setVoices;
+    }
+}
 
         // Obter voz preferida para um idioma
         function getPreferredVoiceForLanguage(langCode) {
