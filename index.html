@@ -230,7 +230,6 @@ body{
 }
 
 /* Generic surfaces */
-.surface-card,
 #deckBar,
 .helper-card,
 .overlay-content,
@@ -932,8 +931,8 @@ select:focus{
             <div id="studyPanel">
                 <div id="sentence-display" class="phase-question">
                     <div id="sideIndicator" class="side-indicator question">Pergunta</div>
-                    <div class="sentence-text">Nenhuma frase carregada neste deck</div>
-                    <div class="translation-text"></div>
+                    <div class="sentence-text">Este deck ainda não possui frases</div>
+                    <div class="translation-text">Importe um arquivo, cole texto estruturado ou edite o deck atual.</div>
                 </div>
 
                 <div id="sentence-counter" style="text-align:center; margin-bottom:20px;">0 / 0</div>
@@ -1361,7 +1360,7 @@ select:focus{
     </div>
 
     <script>
-        const STORAGE_KEY = 'revisaStateV9';
+        const STORAGE_KEY = 'revisaStateV10';
         const FRONT_MARKER_PATTERN = '(?:FRENTE|FRONT|PERGUNTA|QUESTION)(?:\\s*#?\\d+)?';
         const BACK_MARKER_PATTERN = '(?:VERSO|BACK|RESPOSTA|ANSWER)(?:\\s*#?\\d+)?';
         const CARD_SEPARATOR_PATTERN = '(?:===+\\s*(?:CARD|CARTAO)?\\s*===+|---+|___+|\\*\\*\\*+)';
@@ -1638,7 +1637,7 @@ select:focus{
                 syncStateFromInputsForPersistence();
 
                 const state = {
-                    version: 9,
+                    version: 10,
                     settings: getSerializableSettings(),
                     ui: {
                         currentTab,
@@ -1807,6 +1806,111 @@ select:focus{
             if (loopPill) {
                 loopPill.innerHTML = `<i class="fas fa-repeat"></i> ${getCurrentLoopLabel()}`;
             }
+        }
+
+        function getPdfPromptTemplate() {
+            return `Quero que você reorganize o conteúdo abaixo em cartões de estudo para o app Revisa, que importa PDFs estruturados em FRENTE/VERSO.
+
+REGRAS OBRIGATÓRIAS:
+1. A saída deve ser apenas texto simples.
+2. Não use markdown.
+3. Não use comentários, observações ou explicações extras.
+4. Cada cartão deve ter exatamente este formato:
+
+FRENTE:
+[conteúdo da frente]
+
+VERSO:
+[conteúdo do verso]
+
+===CARD===
+
+5. Use FRENTE para pergunta, termo, frase, conceito ou trecho principal.
+6. Use VERSO para resposta, tradução, explicação, definição ou complemento.
+7. Não coloque nada antes do primeiro FRENTE.
+8. Não coloque nada depois do último VERSO.
+9. Não misture dois cartões no mesmo bloco.
+10. Preserve listas, exemplos e quebras de linha quando isso ajudar no estudo.
+11. Se houver idioma original e tradução, mantenha o original na FRENTE e a tradução no VERSO.
+12. A saída precisa ficar pronta para eu colar no app ou exportar como PDF texto selecionável.
+
+CONTEÚDO PARA FORMATAR:
+[cole aqui o texto bruto extraído do PDF]`;
+        }
+
+        function getPdfFormatExample() {
+            return `FRENTE:
+How are you?
+
+VERSO:
+Como você está?
+
+===CARD===
+
+FRENTE:
+What does "although" mean?
+
+VERSO:
+Significa "embora".
+
+===CARD===
+
+FRENTE:
+Explique o que é fotossíntese.
+
+VERSO:
+Processo pelo qual plantas convertem luz, água e dióxido de carbono em glicose e oxigênio.`;
+        }
+
+        function getCombinedPromptWithRawText() {
+            const rawText = lastPdfRawText && lastPdfRawText.trim()
+                ? lastPdfRawText
+                : '[Sem texto bruto disponível. Carregue um PDF primeiro.]';
+
+            return getPdfPromptTemplate().replace('[cole aqui o texto bruto extraído do PDF]', rawText);
+        }
+
+        function populatePdfPromptTab() {
+            const promptEl = document.getElementById('pdfPromptTextarea');
+            const exampleEl = document.getElementById('pdfFormatExampleTextarea');
+
+            if (promptEl) promptEl.value = getPdfPromptTemplate();
+            if (exampleEl) exampleEl.value = getPdfFormatExample();
+        }
+
+        async function copyTextToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showNotification('Texto copiado!', 'success');
+            } catch (error) {
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                showNotification('Texto copiado!', 'success');
+            }
+        }
+
+        function copyPdfPrompt() {
+            copyTextToClipboard(getPdfPromptTemplate());
+        }
+
+        function copyCombinedPromptWithRawText() {
+            copyTextToClipboard(getCombinedPromptWithRawText());
+        }
+
+        function copyPdfFormatExample() {
+            copyTextToClipboard(getPdfFormatExample());
+        }
+
+        function copyLastPdfRawText() {
+            if (!lastPdfRawText || !lastPdfRawText.trim()) {
+                showNotification('Ainda não há texto bruto de PDF para copiar.', 'info');
+                return;
+            }
+            copyTextToClipboard(lastPdfRawText);
         }
 
         function init() {
@@ -2588,304 +2692,8 @@ select:focus{
             alert('Funcionalidade Google Drive será implementada em breve');
         }
 
-        function normalizePdfText(text) {
-            return String(text || '')
-                .replace(/\u00A0/g, ' ')
-                .replace(/\r/g, '\n')
-                .replace(/[ \t]+\n/g, '\n')
-                .replace(/\n[ \t]+/g, '\n')
-                .replace(/[ \t]{2,}/g, ' ')
-                .replace(/\n{3,}/g, '\n\n')
-                .trim();
-        }
-
-        function cleanCardSide(text) {
-            const markerCleanupRegex = new RegExp(`^\\s*(?:${FRONT_MARKER_PATTERN}|${BACK_MARKER_PATTERN})\\s*(?::|-)?\\s*`, 'gim');
-            const separatorCleanupRegex = new RegExp(`^\\s*${CARD_SEPARATOR_PATTERN}\\s*$`, 'gim');
-
-            return normalizePdfText(
-                String(text || '')
-                    .replace(markerCleanupRegex, '')
-                    .replace(separatorCleanupRegex, '')
-                    .replace(/^\s*===PAGE===\s*$/gim, '')
-            );
-        }
-
-        function parseFrontBackPairsFromText(text) {
-            const normalized = normalizePdfText(text);
-            if (!normalized) return [];
-
-            const pairRegex = new RegExp(
-                `(?:^|\\n)\\s*${FRONT_MARKER_PATTERN}\\s*(?::|-)?\\s*\\n?([\\s\\S]*?)\\n\\s*${BACK_MARKER_PATTERN}\\s*(?::|-)?\\s*\\n?([\\s\\S]*?)(?=(?:\\n\\s*${CARD_SEPARATOR_PATTERN}\\s*\\n)|(?:\\n\\s*${FRONT_MARKER_PATTERN}\\s*(?::|-)?(?:\\n|$))|$)`,
-                'gim'
-            );
-
-            const pairs = [];
-            let match;
-
-            while ((match = pairRegex.exec(normalized)) !== null) {
-                const original = cleanCardSide(match[1]);
-                const translation = cleanCardSide(match[2]);
-
-                if (original && translation) {
-                    pairs.push({ original, translation });
-                }
-            }
-
-            return dedupePairs(pairs);
-        }
-
-        function parseLabeledQuestionAnswerBlocks(text) {
-            const normalized = normalizePdfText(text);
-            if (!normalized) return [];
-
-            const regex = /(?:^|\n)\s*(?:PERGUNTA|QUESTION|Q|ORIGINAL)\s*:?\s*\n?([\s\S]*?)\n\s*(?:RESPOSTA|ANSWER|A|TRADUÇÃO|TRADUCAO|TRANSLATION)\s*:?\s*\n?([\s\S]*?)(?=(?:\n{2,}\s*(?:PERGUNTA|QUESTION|Q|ORIGINAL)\s*:?)|$)/gim;
-            const pairs = [];
-            let match;
-
-            while ((match = regex.exec(normalized)) !== null) {
-                const original = cleanCardSide(match[1]);
-                const translation = cleanCardSide(match[2]);
-                if (original && translation) {
-                    pairs.push({ original, translation });
-                }
-            }
-
-            return dedupePairs(pairs);
-        }
-
-        function parseDelimitedLinePairs(text) {
-            const lines = String(text || '').split(/\r?\n/);
-            const pairs = [];
-
-            lines.forEach(line => {
-                const trimmed = line.trim();
-                if (!trimmed) return;
-
-                const match = trimmed.match(/^(.*?)\s*(?:\t+|\s+\|\s+|\s*=>\s*|\s*->\s*|\s*;\s+)\s*(.+)$/);
-                if (match) {
-                    const original = cleanCardSide(match[1]);
-                    const translation = cleanCardSide(match[2]);
-                    if (original && translation) {
-                        pairs.push({ original, translation });
-                    }
-                }
-            });
-
-            return dedupePairs(pairs);
-        }
-
-        function parseStructuredDeckText(text) {
-            return dedupePairs([
-                ...parseFrontBackPairsFromText(text),
-                ...parseLabeledQuestionAnswerBlocks(text),
-                ...parseDelimitedLinePairs(text)
-            ]);
-        }
-
-        function detectStructuredPageType(text) {
-            const normalized = normalizePdfText(text);
-            if (/^\s*(FRENTE|FRONT|PERGUNTA|QUESTION)\b/i.test(normalized)) return 'front';
-            if (/^\s*(VERSO|BACK|RESPOSTA|ANSWER)\b/i.test(normalized)) return 'back';
-            return null;
-        }
-
-        function stripLeadingPageLabel(text) {
-            return normalizePdfText(text).replace(
-                /^\s*(?:FRENTE|FRONT|PERGUNTA|QUESTION|VERSO|BACK|RESPOSTA|ANSWER)(?:\s*#?\d+)?\s*(?::|-)?\s*/i,
-                ''
-            ).trim();
-        }
-
-        function parseAlternatingFrontBackPages(pages) {
-            const pairs = [];
-            let pendingFront = null;
-
-            for (const pageText of pages) {
-                const pageType = detectStructuredPageType(pageText);
-                const cleaned = stripLeadingPageLabel(pageText);
-
-                if (!pageType || !cleaned) continue;
-
-                if (pageType === 'front') {
-                    pendingFront = cleaned;
-                } else if (pageType === 'back' && pendingFront) {
-                    pairs.push({
-                        original: pendingFront,
-                        translation: cleaned
-                    });
-                    pendingFront = null;
-                }
-            }
-
-            return dedupePairs(pairs);
-        }
-
-        async function extractTextFromPdfPage(page) {
-            const textContent = await page.getTextContent();
-            const items = textContent.items || [];
-
-            let text = '';
-            let lastY = null;
-
-            for (const item of items) {
-                const str = item.str || '';
-                if (!str && !item.hasEOL) continue;
-
-                const y = item.transform ? item.transform[5] : lastY;
-
-                if (lastY !== null && y !== null && Math.abs(y - lastY) > 4) {
-                    text += '\n';
-                } else if (text && !text.endsWith('\n') && str) {
-                    text += ' ';
-                }
-
-                text += str;
-                lastY = y;
-
-                if (item.hasEOL) {
-                    text += '\n';
-                    lastY = null;
-                }
-            }
-
-            return normalizePdfText(text);
-        }
-
-        async function extractSentencesFromPDF(arrayBuffer) {
-            if (!window.pdfjsLib) {
-                throw new Error('Biblioteca de PDF não carregada.');
-            }
-
-            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-            const pages = [];
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const pageText = await extractTextFromPdfPage(page);
-                if (pageText) pages.push(pageText);
-            }
-
-            lastPdfRawText = pages.join('\n\n===PAGE===\n\n');
-            updateLastPdfRawTextArea();
-
-            if (!pages.length || !lastPdfRawText.trim()) {
-                throw new Error('O PDF não possui texto extraível. Se for um PDF escaneado/imagem, use OCR ou a aba "PDF / IA".');
-            }
-
-            let pairs = [];
-
-            for (const pageText of pages) {
-                pairs.push(...parseFrontBackPairsFromText(pageText));
-            }
-
-            pairs = dedupePairs(pairs);
-
-            if (!pairs.length) {
-                pairs = parseFrontBackPairsFromText(lastPdfRawText);
-            }
-
-            if (!pairs.length) {
-                pairs = parseAlternatingFrontBackPages(pages);
-            }
-
-            pairs = dedupePairs(pairs);
-
-            if (!pairs.length) {
-                throw new Error('Não encontrei pares FRENTE/VERSO reconhecíveis no PDF. Abra a aba "PDF / IA" para gerar um formato compatível.');
-            }
-
-            return pairs;
-        }
-
-        function parseCsvRows(text) {
-            const rows = text.split(/\r?\n/).filter(Boolean);
-            const extracted = [];
-
-            rows.forEach(row => {
-                const commaCount = (row.match(/,/g) || []).length;
-                const semicolonCount = (row.match(/;/g) || []).length;
-                const delimiter = semicolonCount > commaCount ? ';' : ',';
-                const cols = row.split(delimiter);
-
-                if (cols[0] && cols[1]) {
-                    extracted.push({
-                        original: String(cols[0]).trim(),
-                        translation: String(cols[1]).trim()
-                    });
-                }
-            });
-
-            return dedupePairs(extracted);
-        }
-
-        function importCardsToDeck(cards, targetDeckId, importMode = 'replace', sourceLabel = 'arquivo') {
-            ensureDecksExist();
-
-            const cleanCards = dedupePairs(cards);
-            if (!cleanCards.length) {
-                throw new Error('Nenhum card válido foi encontrado para importar.');
-            }
-
-            const deck = getDeckById(targetDeckId) || getCurrentDeck();
-            if (!deck) throw new Error('Deck de destino não encontrado.');
-
-            const beforeCount = deck.sentences.length;
-
-            if (importMode === 'append') {
-                deck.sentences = dedupePairs([...deck.sentences, ...cleanCards]);
-                deck.markedSentences = deck.markedSentences.filter(marked =>
-                    deck.sentences.some(sentence => isSameSentence(sentence, marked))
-                );
-            } else {
-                deck.sentences = cleanCards;
-                deck.markedSentences = [];
-            }
-
-            touchDeck(deck);
-
-            currentDeckId = deck.id;
-            currentTab = 'main';
-            currentSentenceIndex = 0;
-            currentSpeechPhase = 'question';
-            showTranslation = false;
-            setActiveTabButtonState();
-            setLoopToCurrentListFullRange();
-
-            if (shuffleModeEnabled) {
-                rebuildShuffleOrder({ keepCurrentAtStart: true });
-            } else {
-                clearShuffleSession();
-            }
-
-            refreshDeckSelectors();
-            updateLoopRange();
-            updateSessionStatusBar();
-            updateUI();
-            saveAppState();
-
-            const afterCount = deck.sentences.length;
-            const addedCount = Math.max(0, afterCount - beforeCount);
-
-            if (importMode === 'append') {
-                const ignoredDuplicates = Math.max(0, cleanCards.length - addedCount);
-                showNotification(
-                    `${addedCount} card(s) adicionados ao deck "${deck.name}" via ${sourceLabel}${ignoredDuplicates ? ` • ${ignoredDuplicates} duplicado(s) ignorado(s)` : ''}.`,
-                    'success'
-                );
-            } else {
-                showNotification(
-                    `Deck "${deck.name}" atualizado com ${afterCount} card(s) via ${sourceLabel}.`,
-                    'success'
-                );
-            }
-
-            return {
-                deck,
-                beforeCount,
-                afterCount,
-                addedCount
-            };
+        function importCardsToDeckSafe(cards, targetDeckId, importMode, sourceLabel) {
+            importCardsToDeck(cards, targetDeckId, importMode, sourceLabel);
         }
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -2922,17 +2730,17 @@ select:focus{
                             }
                         });
 
-                        importCardsToDeck(extractedSentences, targetDeckId, importMode, 'XLSX');
+                        importCardsToDeckSafe(extractedSentences, targetDeckId, importMode, 'XLSX');
                     } else if (fileName.endsWith('.csv')) {
                         lastPdfRawText = '';
                         updateLastPdfRawTextArea();
 
                         const text = new TextDecoder().decode(data);
                         extractedSentences = parseCsvRows(text);
-                        importCardsToDeck(extractedSentences, targetDeckId, importMode, 'CSV');
+                        importCardsToDeckSafe(extractedSentences, targetDeckId, importMode, 'CSV');
                     } else if (fileName.endsWith('.pdf')) {
                         extractedSentences = await extractSentencesFromPDF(data);
-                        importCardsToDeck(extractedSentences, targetDeckId, importMode, 'PDF');
+                        importCardsToDeckSafe(extractedSentences, targetDeckId, importMode, 'PDF');
                     } else {
                         throw new Error('Formato de arquivo não suportado.');
                     }
@@ -2958,45 +2766,6 @@ select:focus{
 
             reader.readAsArrayBuffer(file);
         });
-
-        function handleStructuredImportDraftChange() {
-            structuredImportDraft = document.getElementById('structuredImportTextarea').value || '';
-            saveAppState();
-        }
-
-        function clearStructuredImport() {
-            structuredImportDraft = '';
-            document.getElementById('structuredImportTextarea').value = '';
-            saveAppState();
-            showNotification('Texto colado foi limpo.', 'info');
-        }
-
-        function importStructuredTextToDeck() {
-            const textarea = document.getElementById('structuredImportTextarea');
-            const text = textarea.value.trim();
-            const targetDeckId = document.getElementById('pasteTargetDeckSelect').value || currentDeckId;
-            const importMode = document.getElementById('pasteImportModeSelect').value || 'replace';
-
-            if (!text) {
-                showNotification('Cole o texto estruturado antes de importar.', 'info');
-                return;
-            }
-
-            try {
-                const cards = parseStructuredDeckText(text);
-
-                if (!cards.length) {
-                    throw new Error('Não encontrei pares válidos no texto colado. Tente FRENTE/VERSO, PERGUNTA/RESPOSTA ou frente | verso.');
-                }
-
-                importCardsToDeck(cards, targetDeckId, importMode, 'texto colado');
-                structuredImportDraft = '';
-                textarea.value = '';
-                saveAppState();
-            } catch (error) {
-                showNotification(error.message, 'error');
-            }
-        }
 
         function togglePlayPause() {
             if (currentTab === 'pdfPrompt') {
@@ -3735,7 +3504,7 @@ select:focus{
         function exportAllDecksBackup() {
             const payload = {
                 app: 'Revisa',
-                version: 9,
+                version: 10,
                 exportedAt: new Date().toISOString(),
                 settings: getSerializableSettings(),
                 data: { decks }
