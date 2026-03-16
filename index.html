@@ -56,10 +56,10 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 480px; /* Max width for mobile-first design */
+    max-width: 480px;
     margin: 20px;
     overflow: hidden;
-    position: relative; /* For absolute positioning of overlays */
+    position: relative;
     min-height: 600px;
     display: flex;
     flex-direction: column;
@@ -78,17 +78,20 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    gap: 10px;
 }
 
 #header h1 {
     font-size: 1.8em;
     color: #2c3e50;
     margin: 0;
+    line-height: 1.2;
 }
 
 .header-buttons {
     display: flex;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .action-button {
@@ -138,7 +141,8 @@ body {
 .translation-text {
     color: #7f8c8d;
     font-size: 1.1em;
-    display: none; /* Hidden by default */
+    display: none;
+    margin-top: 10px;
 }
 
 /* Controls */
@@ -223,6 +227,8 @@ body {
     bottom: 0;
     width: 100%;
     box-sizing: border-box;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .action-button-bottom {
@@ -338,13 +344,6 @@ body {
     cursor: pointer;
 }
 
-#speed-value, #interval-value {
-    display: inline-block;
-    margin-left: 10px;
-    font-weight: bold;
-    color: #3498db;
-}
-
 .radio-group {
     margin-bottom: 20px;
 }
@@ -381,20 +380,10 @@ body {
     font-size: 0.9em;
 }
 
-#language-selector button img {
-    width: 24px;
-    height: 24px;
-    border-radius: 3px;
-}
-
 #language-selector button.active {
     background-color: #3498db;
     border-color: #2980b9;
     color: white;
-}
-
-#language-selector button.active img {
-    filter: brightness(1.2);
 }
 
 #language-selector button:hover:not(.active) {
@@ -530,7 +519,7 @@ body {
 /* Responsive Adjustments */
 @media (max-width: 600px) {
     #header h1 {
-        font-size: 1.5em;
+        font-size: 1.3em;
     }
 
     .action-button {
@@ -730,10 +719,23 @@ body {
                 </button>
             </div>
 
+            <label>Falar Resposta:</label>
+            <div style="margin-bottom: 20px;">
+                <button id="speakAnswerOnBtn" class="action-button-bottom" style="width: 48%; margin-right: 2%;" onclick="setSpeakAnswer(true)">
+                    <i class="fas fa-toggle-on"></i> Ligado
+                </button>
+                <button id="speakAnswerOffBtn" class="action-button-bottom" style="background-color: #3498db; width: 48%;" onclick="setSpeakAnswer(false)">
+                    <i class="fas fa-toggle-off"></i> Desligado
+                </button>
+            </div>
+
             <label>Velocidade: <span id="speedDisplay">1.0x</span></label>
             <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(event)">
 
-            <label>Intervalo: <span id="intervalDisplay">🚀 Leitura Corrente</span></label>
+            <label>Pausa entre pergunta e resposta: <span id="answerPauseDisplay">⚡ Instantâneo</span></label>
+            <input type="range" id="answerPauseSlider" min="0" max="10" step="0.5" value="0" oninput="updateAnswerPauseDisplay()">
+
+            <label>Intervalo até a próxima frase: <span id="intervalDisplay">🚀 Leitura Corrente</span></label>
             <input type="range" id="intervalSlider" min="0" max="10" step="0.5" value="0" oninput="updateIntervalDisplay()">
 
             <label>Seletor de Idioma:</label>
@@ -824,6 +826,7 @@ body {
         let markedSentences = [];
         let playInterval = null;
         let restartTimeout = null;
+        let answerDelayTimeout = null;
         let currentMode = 'input';
         let currentSpeed = 1.0;
         let loopStart = 0;
@@ -833,14 +836,18 @@ body {
         let currentTab = 'main';
         let showTranslation = false;
         let playbackSession = 0;
+        let speakAnswerEnabled = false;
+        let currentSpeechPhase = 'question';
 
         // Inicialização
         function init() {
             loadVoices();
             setupLanguageSelector();
             setMode(currentMode);
+            setSpeakAnswer(speakAnswerEnabled);
             document.getElementById('speedSlider').value = currentSpeed;
             document.getElementById('speedDisplay').textContent = currentSpeed.toFixed(1) + 'x';
+            updateAnswerPauseDisplay();
             updateIntervalDisplay();
             setActiveTabButtonState();
             updatePlayPauseButton();
@@ -866,12 +873,19 @@ body {
             }
         }
 
-        // Comparar frases
+        function clearPlaybackTimers() {
+            clearTimeout(playInterval);
+            clearTimeout(restartTimeout);
+            clearTimeout(answerDelayTimeout);
+            playInterval = null;
+            restartTimeout = null;
+            answerDelayTimeout = null;
+        }
+
         function isSameSentence(a, b) {
             return !!a && !!b && a.original === b.original && a.translation === b.translation;
         }
 
-        // Atualizar botão Play/Pause
         function updatePlayPauseButton() {
             const btn = document.querySelector('.play-pause-button');
             btn.innerHTML = isPlaying
@@ -879,7 +893,6 @@ body {
                 : '<i class="fas fa-play"></i>';
         }
 
-        // Atualizar estado visual das abas
         function setActiveTabButtonState() {
             const mainTab = document.getElementById('mainTab');
             const markedTab = document.getElementById('markedTab');
@@ -893,7 +906,31 @@ body {
             }
         }
 
-        // Obter voz preferida para um idioma
+        function getActiveSelectedLanguage() {
+            const activeLanguageButton = document.querySelector('#language-selector button.active');
+            return activeLanguageButton ? activeLanguageButton.dataset.lang : 'pt-BR';
+        }
+
+        function detectLanguageCodeFromText(text) {
+            try {
+                if (typeof franc !== 'function') return null;
+                const cleanText = (text || '').trim();
+                if (cleanText.length < 3) return null;
+
+                const code = franc(cleanText, { minLength: 3 });
+                const langMap = {
+                    por: 'pt-BR',
+                    eng: 'en-US',
+                    fra: 'fr-FR',
+                    spa: 'es-ES'
+                };
+
+                return langMap[code] || null;
+            } catch (error) {
+                return null;
+            }
+        }
+
         function getPreferredVoiceForLanguage(langCode) {
             if (!availableVoices.length) {
                 availableVoices = window.speechSynthesis.getVoices();
@@ -919,6 +956,18 @@ body {
             return fallback || availableVoices[0] || null;
         }
 
+        function getSpeechSettingsForText(text) {
+            const selectedLang = getActiveSelectedLanguage();
+            const detectedLang = detectLanguageCodeFromText(text);
+            const langCode = detectedLang || selectedLang;
+            const voice = getPreferredVoiceForLanguage(langCode) || getPreferredVoiceForLanguage(selectedLang);
+
+            return {
+                langCode: voice ? voice.lang : langCode,
+                voice
+            };
+        }
+
         // Configurar seletor de idioma
         function setupLanguageSelector() {
             const selector = document.getElementById('language-selector');
@@ -941,7 +990,6 @@ body {
             });
         }
 
-        // Selecionar idioma
         function selectLanguage(langCode, btn) {
             document.querySelectorAll('#language-selector button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -952,10 +1000,10 @@ body {
             }
         }
 
-        // Alternar abas
         function switchTab(tab) {
             currentTab = tab;
             currentSentenceIndex = 0;
+            currentSpeechPhase = 'question';
             setActiveTabButtonState();
             updateLoopRange();
             updateUI();
@@ -970,12 +1018,10 @@ body {
             }
         }
 
-        // Obter frases da aba atual
         function getCurrentSentences() {
             return currentTab === 'marked' ? markedSentences : sentences;
         }
 
-        // Loop efetivo
         function getEffectiveLoopBounds(totalLength) {
             if (totalLength <= 0) {
                 return { start: 0, end: 0 };
@@ -997,29 +1043,25 @@ body {
             return { start, end };
         }
 
-        // Mostrar opções de upload
         function showUploadOptions() {
             document.getElementById('uploadOptionsOverlay').classList.add('active');
         }
 
-        // Ocultar opções de upload
         function hideUploadOptions() {
             document.getElementById('uploadOptionsOverlay').classList.remove('active');
         }
 
-        // Selecionar arquivo local
         function selectLocalFile() {
             hideUploadOptions();
             document.getElementById('fileInput').click();
         }
 
-        // Selecionar do Google Drive
         function selectFromGoogleDrive() {
             hideUploadOptions();
             alert('Funcionalidade Google Drive será implementada em breve');
         }
 
-        // Processar upload de arquivo
+        // Upload de arquivo
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1070,6 +1112,7 @@ body {
                     markedSentences = [];
                     currentTab = 'main';
                     currentSentenceIndex = 0;
+                    currentSpeechPhase = 'question';
                     showTranslation = false;
 
                     if (sentences.length > 0) {
@@ -1096,7 +1139,6 @@ body {
             reader.readAsArrayBuffer(file);
         });
 
-        // Alternar Play/Pause
         function togglePlayPause() {
             if (isPlaying) {
                 stopAutoPlay();
@@ -1105,7 +1147,6 @@ body {
             }
         }
 
-        // Iniciar reprodução automática
         function startAutoPlay() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) {
@@ -1115,8 +1156,8 @@ body {
 
             isPlaying = true;
             playbackSession++;
-            clearTimeout(playInterval);
-            clearTimeout(restartTimeout);
+            currentSpeechPhase = 'question';
+            clearPlaybackTimers();
             window.speechSynthesis.cancel();
             updatePlayPauseButton();
             updateUI();
@@ -1124,38 +1165,36 @@ body {
             const sessionId = playbackSession;
             restartTimeout = setTimeout(() => {
                 if (!isPlaying || sessionId !== playbackSession) return;
-                playSentence(sessionId);
-            }, 60);
+                playSentence(sessionId, 'question');
+            }, 80);
         }
 
-        // Parar reprodução automática
         function stopAutoPlay() {
             isPlaying = false;
             playbackSession++;
-            clearTimeout(playInterval);
-            clearTimeout(restartTimeout);
+            currentSpeechPhase = 'question';
+            clearPlaybackTimers();
             window.speechSynthesis.cancel();
             updatePlayPauseButton();
+            updateUI();
         }
 
-        // Reiniciar reprodução da frase atual
         function restartPlaybackFromCurrentCard() {
             if (!isPlaying) return;
 
             playbackSession++;
-            clearTimeout(playInterval);
-            clearTimeout(restartTimeout);
+            currentSpeechPhase = 'question';
+            clearPlaybackTimers();
             window.speechSynthesis.cancel();
             updateUI();
 
             const sessionId = playbackSession;
             restartTimeout = setTimeout(() => {
                 if (!isPlaying || sessionId !== playbackSession) return;
-                playSentence(sessionId);
-            }, 60);
+                playSentence(sessionId, 'question');
+            }, 80);
         }
 
-        // Avançar respeitando loop
         function advanceToNextSentence() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
@@ -1172,8 +1211,38 @@ body {
                 : currentSentenceIndex + 1;
         }
 
-        // Reproduzir frase
-        function playSentence(sessionId = playbackSession) {
+        function speakText(text, phase, sessionId, onDone) {
+            if (!text || !text.trim()) {
+                onDone?.();
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = currentSpeed;
+
+            const speechSettings = getSpeechSettingsForText(text);
+            utterance.lang = speechSettings.langCode;
+
+            if (speechSettings.voice) {
+                utterance.voice = speechSettings.voice;
+                console.log(`Usando voz: ${speechSettings.voice.name} para ${speechSettings.langCode}`);
+            }
+
+            utterance.onend = () => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                onDone?.();
+            };
+
+            utterance.onerror = (event) => {
+                console.error('Erro ao reproduzir TTS:', event);
+                if (!isPlaying || sessionId !== playbackSession) return;
+                onDone?.();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function playSentence(sessionId = playbackSession, phase = 'question') {
             const currentSentences = getCurrentSentences();
 
             if (!isPlaying || sessionId !== playbackSession || currentSentences.length === 0) {
@@ -1184,48 +1253,36 @@ body {
                 currentSentenceIndex = 0;
             }
 
+            const sentence = currentSentences[currentSentenceIndex];
+            currentSpeechPhase = phase;
             updateUI();
 
-            const sentence = currentSentences[currentSentenceIndex];
-            const textToSpeak = currentMode === 'input'
-                ? sentence.original
-                : sentence.translation;
+            const questionText = currentMode === 'input' ? sentence.original : sentence.translation;
+            const answerText = currentMode === 'input' ? sentence.translation : sentence.original;
+            const textToSpeak = phase === 'question' ? questionText : answerText;
 
-            if (!textToSpeak || !textToSpeak.trim()) {
-                scheduleNextSentence(sessionId);
-                return;
-            }
-
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.rate = currentSpeed;
-
-            const activeLanguageButton = document.querySelector('#language-selector button.active');
-            const langCode = activeLanguageButton ? activeLanguageButton.dataset.lang : 'pt-BR';
-            const preferredVoice = getPreferredVoiceForLanguage(langCode);
-
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
-                utterance.lang = preferredVoice.lang;
-                console.log(`Usando voz: ${preferredVoice.name} para ${utterance.lang}`);
-            } else {
-                utterance.lang = langCode;
-            }
-
-            utterance.onend = () => {
+            speakText(textToSpeak, phase, sessionId, () => {
                 if (!isPlaying || sessionId !== playbackSession) return;
-                scheduleNextSentence(sessionId);
-            };
 
-            utterance.onerror = (event) => {
-                console.error('Erro ao reproduzir TTS:', event);
-                if (!isPlaying || sessionId !== playbackSession) return;
-                scheduleNextSentence(sessionId);
-            };
-
-            window.speechSynthesis.speak(utterance);
+                if (phase === 'question' && speakAnswerEnabled) {
+                    scheduleAnswerSpeech(sessionId);
+                } else {
+                    scheduleNextSentence(sessionId);
+                }
+            });
         }
 
-        // Agendar próxima frase
+        function scheduleAnswerSpeech(sessionId) {
+            clearTimeout(answerDelayTimeout);
+
+            const delay = parseFloat(document.getElementById('answerPauseSlider').value || '0') * 1000;
+
+            answerDelayTimeout = setTimeout(() => {
+                if (!isPlaying || sessionId !== playbackSession) return;
+                playSentence(sessionId, 'answer');
+            }, delay);
+        }
+
         function scheduleNextSentence(sessionId) {
             clearTimeout(playInterval);
 
@@ -1234,17 +1291,18 @@ body {
             playInterval = setTimeout(() => {
                 if (!isPlaying || sessionId !== playbackSession) return;
                 advanceToNextSentence();
+                currentSpeechPhase = 'question';
                 updateUI();
-                playSentence(sessionId);
+                playSentence(sessionId, 'question');
             }, delay);
         }
 
-        // Próxima frase
         function showNextSentence() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
 
             currentSentenceIndex = (currentSentenceIndex + 1) % currentSentences.length;
+            currentSpeechPhase = 'question';
             updateUI();
 
             if (isPlaying) {
@@ -1252,12 +1310,12 @@ body {
             }
         }
 
-        // Frase anterior
         function showPreviousSentence() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
 
             currentSentenceIndex = (currentSentenceIndex - 1 + currentSentences.length) % currentSentences.length;
+            currentSpeechPhase = 'question';
             updateUI();
 
             if (isPlaying) {
@@ -1265,13 +1323,11 @@ body {
             }
         }
 
-        // Alternar mostrar resposta
         function toggleShowAnswer() {
             showTranslation = !showTranslation;
             updateUI();
         }
 
-        // Marcar frase
         function toggleMarkSentence() {
             const currentSentences = getCurrentSentences();
             if (currentSentences.length === 0) return;
@@ -1287,15 +1343,24 @@ body {
                 showNotification('Frase marcada', 'success');
             }
 
+            if (currentSentenceIndex >= getCurrentSentences().length) {
+                currentSentenceIndex = Math.max(0, getCurrentSentences().length - 1);
+            }
+
+            currentSpeechPhase = 'question';
             updateLoopRange();
             updateUI();
 
             if (isPlaying && currentTab === 'marked') {
-                restartPlaybackFromCurrentCard();
+                const list = getCurrentSentences();
+                if (list.length === 0) {
+                    stopAutoPlay();
+                } else {
+                    restartPlaybackFromCurrentCard();
+                }
             }
         }
 
-        // Ir à frase
         function showGoToSentence() {
             const currentSentences = getCurrentSentences();
             document.getElementById('goToSentenceOverlay').classList.add('active');
@@ -1313,6 +1378,7 @@ body {
 
             if (num > 0 && num <= currentSentences.length) {
                 currentSentenceIndex = num - 1;
+                currentSpeechPhase = 'question';
                 updateUI();
                 closeGoToSentence();
 
@@ -1324,16 +1390,30 @@ body {
             }
         }
 
-        // Alternar configurações
         function toggleSettings() {
             document.getElementById('settingsOverlay').classList.toggle('active');
             updateLoopRange();
+            updateAnswerPauseDisplay();
+            updateIntervalDisplay();
         }
 
         function setMode(mode) {
             currentMode = mode;
             document.getElementById('modeInputBtn').style.backgroundColor = mode === 'input' ? '#3498db' : '#95a5a6';
             document.getElementById('modeOutputBtn').style.backgroundColor = mode === 'output' ? '#3498db' : '#95a5a6';
+            currentSpeechPhase = 'question';
+            updateUI();
+
+            if (isPlaying) {
+                restartPlaybackFromCurrentCard();
+            }
+        }
+
+        function setSpeakAnswer(enabled) {
+            speakAnswerEnabled = enabled;
+            document.getElementById('speakAnswerOnBtn').style.backgroundColor = enabled ? '#3498db' : '#95a5a6';
+            document.getElementById('speakAnswerOffBtn').style.backgroundColor = !enabled ? '#3498db' : '#95a5a6';
+            currentSpeechPhase = 'question';
             updateUI();
 
             if (isPlaying) {
@@ -1350,9 +1430,15 @@ body {
             }
         }
 
+        function updateAnswerPauseDisplay() {
+            const answerPause = parseFloat(document.getElementById('answerPauseSlider').value || '0');
+            const display = answerPause === 0 ? '⚡ Instantâneo' : `⏸️ ${answerPause}s`;
+            document.getElementById('answerPauseDisplay').textContent = display;
+        }
+
         function updateIntervalDisplay() {
-            const interval = document.getElementById('intervalSlider').value;
-            const display = interval == 0 ? '🚀 Leitura Corrente' : `⏱️ ${interval}s`;
+            const interval = parseFloat(document.getElementById('intervalSlider').value || '0');
+            const display = interval === 0 ? '🚀 Leitura Corrente' : `⏱️ ${interval}s`;
             document.getElementById('intervalDisplay').textContent = display;
         }
 
@@ -1380,6 +1466,8 @@ body {
         }
 
         function saveSettings() {
+            updateAnswerPauseDisplay();
+            updateIntervalDisplay();
             updateLoopRange();
             showNotification('Configurações salvas!', 'success');
             toggleSettings();
@@ -1389,7 +1477,6 @@ body {
             }
         }
 
-        // Alternar editor
         function toggleEditor() {
             const overlay = document.getElementById('editorOverlay');
             overlay.classList.toggle('active');
@@ -1467,6 +1554,7 @@ body {
                 currentSentenceIndex = Math.max(0, getCurrentSentences().length - 1);
             }
 
+            currentSpeechPhase = 'question';
             updateLoopRange();
             updateUI();
             toggleEditor();
@@ -1482,7 +1570,6 @@ body {
             }
         }
 
-        // Atualizar UI
         function updateUI() {
             document.getElementById('allSentencesCount').textContent = sentences.length;
             document.getElementById('markedSentencesCount').textContent = markedSentences.length;
@@ -1519,18 +1606,20 @@ body {
             }
 
             const sentence = currentSentences[currentSentenceIndex];
-
-            const frontText = currentMode === 'input'
-                ? sentence.original
-                : sentence.translation;
-
-            const backText = currentMode === 'input'
-                ? sentence.translation
-                : sentence.original;
+            const frontText = currentMode === 'input' ? sentence.original : sentence.translation;
+            const backText = currentMode === 'input' ? sentence.translation : sentence.original;
 
             sentenceTextEl.textContent = frontText;
-            translationTextEl.textContent = showTranslation ? backText : '';
-            translationTextEl.style.display = showTranslation ? 'block' : 'none';
+
+            const autoShowAnswerDuringPlayback =
+                isPlaying &&
+                speakAnswerEnabled &&
+                currentSpeechPhase === 'answer';
+
+            const shouldShowBack = showTranslation || autoShowAnswerDuringPlayback;
+
+            translationTextEl.textContent = shouldShowBack ? backText : '';
+            translationTextEl.style.display = shouldShowBack ? 'block' : 'none';
             counterEl.textContent = `${currentSentenceIndex + 1} / ${currentSentences.length}`;
 
             const isMarked = markedSentences.some(s => isSameSentence(s, sentence));
@@ -1539,7 +1628,6 @@ body {
                 : '<i class="fas fa-bookmark"></i> Marcar';
         }
 
-        // Mostrar/ocultar overlay de carregamento
         function showLoadingOverlay() {
             document.getElementById('loading-overlay').classList.add('active');
         }
@@ -1548,7 +1636,6 @@ body {
             document.getElementById('loading-overlay').classList.remove('active');
         }
 
-        // Notificações
         function showNotification(message, type = 'info') {
             const area = document.getElementById('notification-area');
             const notification = document.createElement('div');
@@ -1562,7 +1649,6 @@ body {
             }, 3000);
         }
 
-        // Fechar overlays ao clicar fora
         document.addEventListener('click', (e) => {
             if (e.target.id === 'uploadOptionsOverlay') hideUploadOptions();
             if (e.target.id === 'settingsOverlay') toggleSettings();
@@ -1570,14 +1656,12 @@ body {
             if (e.target.id === 'goToSentenceOverlay') closeGoToSentence();
         });
 
-        // Event listeners para Enter
         document.addEventListener('keypress', (e) => {
             if (e.target.id === 'sentenceNumberInput' && e.key === 'Enter') {
                 goToSentenceNumber();
             }
         });
 
-        // Inicializar ao carregar
         window.addEventListener('load', init);
     </script>
 </body>
