@@ -1856,33 +1856,56 @@ select:focus{
         }
 
         function getPdfPromptTemplate() {
-            return `Quero que você reorganize o conteúdo abaixo em cartões de estudo para o app Revisa, que importa PDFs estruturados em FRENTE/VERSO.
+            return `Você é um gerador de flashcards para estudo.
+
+Sua tarefa é reorganizar qualquer conteúdo em cartões de estudo compatíveis com o aplicativo Revisa.
 
 REGRAS OBRIGATÓRIAS:
+
 1. A saída deve ser apenas texto simples.
 2. Não use markdown.
-3. Não use comentários, observações ou explicações extras.
-4. Cada cartão deve ter exatamente este formato:
+3. Não escreva comentários ou explicações.
+4. Cada cartão deve seguir exatamente este formato:
 
 FRENTE:
-[conteúdo da frente]
+[Card XXX] [Matéria] pergunta ou conceito
 
 VERSO:
-[conteúdo do verso]
+resposta, definição ou explicação
 
 ===CARD===
 
-5. Use FRENTE para pergunta, termo, frase, conceito ou trecho principal.
-6. Use VERSO para resposta, tradução, explicação, definição ou complemento.
-7. Não coloque nada antes do primeiro FRENTE.
-8. Não coloque nada depois do último VERSO.
-9. Não misture dois cartões no mesmo bloco.
-10. Preserve listas, exemplos e quebras de linha quando isso ajudar no estudo.
-11. Se houver idioma original e tradução, mantenha o original na FRENTE e a tradução no VERSO.
-12. A saída precisa ficar pronta para eu colar no app ou exportar como PDF texto selecionável.
+5. XXX deve ser numeração sequencial iniciando em 001.
+6. Sempre usar três dígitos: 001, 002, 003...
+7. A matéria deve aparecer entre colchetes logo após o número.
 
-CONTEÚDO PARA FORMATAR:
-[cole aqui o texto bruto extraído do PDF]`;
+Exemplo:
+
+FRENTE:
+[Card 001] [Química] Qual a definição de ácido segundo Brønsted-Lowry?
+
+VERSO:
+É uma espécie química capaz de doar um próton (H+).
+
+===CARD===
+
+REGRAS DE ORGANIZAÇÃO:
+
+• Agrupar cartões por matéria.
+• Manter redundâncias quando úteis para revisão.
+• Nunca misturar duas perguntas em um mesmo cartão.
+• Nunca criar cartões sem frente ou sem verso.
+
+REGRAS IMPORTANTES PARA O APP:
+
+• Não escrever nada antes do primeiro "FRENTE".
+• Não escrever nada depois do último "===CARD===".
+• Não usar títulos como "MATÉRIA:" fora do cartão.
+• Não usar listas numeradas fora do verso.
+
+O app lê cartões usando "===CARD===", então cada cartão deve terminar com esse separador.
+
+Agora gere os cartões a partir do conteúdo fornecido.`;
         }
 
         function getPdfFormatExample() {
